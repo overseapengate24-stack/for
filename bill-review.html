@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ตรวจสอบค่าบริการ (แอดมิน) · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:wght@700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;--bg:#FAF6EE;--border:#ECE2CE;--border-soft:#F0E9D8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;font-variant-numeric:tabular-nums}
+.top{background:linear-gradient(90deg,#B89865,#9C8654);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.top h1{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex:1}
+.top a{color:#fff;font-size:13px;text-decoration:underline;cursor:pointer}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 90px}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 2px 10px rgba(124,103,57,.06)}
+.bill-no{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:22px;color:var(--brand-700)}
+.sec-t{font-weight:700;color:var(--brand-700);margin-bottom:12px;font-size:14.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ro{font-size:13.5px;line-height:1.95}
+.ro .k{color:var(--ink-soft);display:inline-block;min-width:88px}
+.pill{display:inline-block;background:#FFD400;color:#3C2A0E;border-radius:999px;padding:3px 12px;font-size:12px;font-weight:700}
+.summary .r{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:13.5px}
+.summary .r .k{color:var(--ink-soft)}
+.summary .r .v{font-family:'IBM Plex Mono',monospace;font-weight:600}
+.summary .r.sub{border-top:1px solid var(--border);margin-top:4px;padding-top:10px;font-weight:700}
+.summary .r.total{border-top:2px solid var(--brand-100);border-bottom:0;margin-top:4px;padding-top:12px}
+.summary .r.total .k{font-weight:700;color:var(--ink)}.summary .r.total .v{font-size:20px;color:var(--brand-700)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:9px 8px;border-bottom:1px solid var(--border-soft);text-align:center;white-space:nowrap}
+th{background:var(--brand-50);color:var(--brand-700);font-weight:600}
+.mono{font-family:'IBM Plex Mono',monospace}
+.actions{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1.5px solid var(--border);padding:14px 20px;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;z-index:20}
+.btn{border:0;border-radius:10px;padding:12px 22px;font-family:inherit;font-weight:700;font-size:14.5px;cursor:pointer}
+.btn-edit{background:#7c3aed;color:#fff}
+.btn-ok{background:#16a34a;color:#fff}
+.btn-ghost{background:#fff;border:1.5px solid var(--border);color:var(--ink)}
+.btn:disabled{opacity:.55;cursor:default}
+.empty{text-align:center;padding:60px;color:var(--ink-soft)}
+.note{background:#fffbeb;border:1px solid #fde68a;color:#854d0e;border-radius:9px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+.okbox{background:#dcfce7;border:1px solid #86efac;color:#166534;border-radius:9px;padding:10px 14px;font-size:13px;margin-bottom:16px;font-weight:600}
+@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>🧾 ตรวจสอบค่าบริการ (แอดมิน)</h1>
+  <a id="viewCust">👁 ดูแบบลูกค้า</a>
+</div>
+<div class="wrap" id="root"><div class="empty">กำลังโหลด…</div></div>
+<div class="actions" id="actions" style="display:none">
+  <button class="btn btn-ghost" id="btnRefresh">↻ รีเฟรช</button>
+  <button class="btn btn-edit" id="btnEdit">✏️ แก้ไขค่าบริการ</button>
+  <button class="btn btn-ok" id="btnVerify">✅ ยืนยันค่าบริการ → แจ้งลูกค้า</button>
+</div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmtDate(iso){if(!iso)return '-';const d=new Date(iso);return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function billNoOf(o){const d=new Date(o.updatedAt||o.createdAt||Date.now());const code=`${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;const seq=(o.orderNo||'').replace(/\D/g,'').slice(-4)||'0000';return `BL${code}-${seq}`;}
+const DTYPE={pickup:'รับเอง (มารับที่โกดัง)',warehouse:'โกดังจัดส่ง',private:'ขนส่งเอกชน'};
+function deliveryText(d){const t=DTYPE[d.deliveryType]||'(ยังไม่เลือก)';return d.deliveryType==='private'?`${t} — ${d.deliveryCarrier||'-'}`:t;}
+
+const qs=new URLSearchParams(location.search);
+const no=(qs.get('no')||'').trim().toUpperCase();
+let adminKey=sessionStorage.getItem('opg_admin_key')||'';
+let order=null;
+
+$('#viewCust').addEventListener('click',()=>window.open(`/bill-detail.html?no=${encodeURIComponent(no)}`,'_blank'));
+$('#btnEdit').addEventListener('click',()=>window.open(`/bill-edit.html?no=${encodeURIComponent(no)}`,'_blank'));
+$('#btnRefresh').addEventListener('click',load);
+$('#btnVerify').addEventListener('click',verify);
+
+async function load(){
+  if(!no){ $('#root').innerHTML='<div class="empty">ไม่พบเลขบิล</div>'; return; }
+  if(!adminKey){ adminKey=prompt('ใส่ Admin Key:')||''; if(adminKey) sessionStorage.setItem('opg_admin_key',adminKey); }
+  let d=null;
+  try{ const r=await fetch(`/api/orders/track?no=${encodeURIComponent(no)}`); d=await r.json(); }catch(e){}
+  if(!d||!d.ok||!d.found){ $('#root').innerHTML='<div class="empty">ไม่พบบิลนี้</div>'; return; }
+  order=d; render();
+}
+
+function render(){
+  const d=order, c=d.customer||{}, a=c.address||{};
+  const items=d.items||[], first=items[0]||{};
+  const addrText=[a.detail,a.subdistrict,a.district,a.province,a.postal].filter(Boolean).join(' ')||a.detail||'-';
+  const weightKg=Number(d.billWeightKg)||((Number(d.weight)||0)/1000);
+  const L=Number(d.billL)||0,W=Number(d.billW)||0,H=Number(d.billH)||0,CBM=Number(d.billCbm)||0;
+  const shipFee=Number(d.shipping)||0,billFee=Number(d.billFee)||0,disc=Number(d.discount)||0;
+  const cnShip=Number(d.cnShipFee)||0,sack=Number(d.sackFee)||0,crateFee=Number(d.crateFee)||0,
+        qcFee=Number(d.qcFee)||0,taxPct=Number(d.taxPct)||0;
+  const subtotal=shipFee+cnShip+sack+crateFee+qcFee+billFee-disc;
+  const tax=subtotal*taxPct/100;
+  const grand=subtotal-tax;
+  const verified=d.billStatus!=='REVIEW';
+  const dim=v=>v?fmt(v):'-';
+
+  const sumRows=[
+    ['ค่าขนส่งจีนมาไทย',shipFee],['ค่าจัดส่งในจีน',cnShip],['ค่ากระสอบ',sack],['ค่าตีลังไม้',crateFee],
+    ['ค่าบริการ QC',qcFee],['ค่าบริการ',billFee],['ส่วนลด',disc],
+  ].map(([k,v])=>`<div class="r"><span class="k">${k}</span><span class="v">${fmt(v)}</span></div>`).join('');
+
+  $('#root').innerHTML=`
+    ${verified
+      ? '<div class="okbox">✅ ยืนยันค่าบริการแล้ว — ลูกค้าได้รับแจ้งให้ชำระเงิน (รอชำระเงิน)</div>'
+      : '<div class="note">⏱ ลูกค้ายืนยันบิลแล้ว รอแอดมินตรวจสอบค่าบริการ — ถ้าค่าไม่ถูกต้องกด "แก้ไขค่าบริการ" ก่อน แล้วจึง "ยืนยัน"</div>'}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
+        <div class="bill-no">🧾 ${esc(billNoOf(d))}</div>
+        <div style="text-align:right">
+          <span class="pill">${verified?'ยืนยันแล้ว':'รอตรวจสอบค่าบริการ'}</span>
+          <div style="font-size:12px;color:var(--ink-soft);margin-top:4px">ออเดอร์: ${esc(d.orderNo)}</div>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:var(--ink-soft);margin-top:6px">ลูกค้ายืนยันเมื่อ: ${fmtDate(d.billConfirmedAt)}</div>
+    </div>
+
+    <div class="card">
+      <div class="grid3">
+        <div class="ro">
+          <div class="sec-t">👤 ลูกค้า / ผู้รับ</div>
+          <div><span class="k">ชื่อ</span> ${esc(c.name||a.recipient||'-')}</div>
+          <div><span class="k">เบอร์โทร</span> ${esc(c.phone||a.phone||'-')}</div>
+          <div><span class="k">LINE</span> ${esc(c.lineId||'-')}</div>
+          <div><span class="k">อีเมล</span> ${esc(c.email||'-')}</div>
+        </div>
+        <div class="ro">
+          <div class="sec-t">📍 ที่อยู่จัดส่ง</div>
+          <div>${esc(addrText)}</div>
+          <div class="sec-t" style="margin-top:12px">🚚 วิธีจัดส่งที่ลูกค้าเลือก</div>
+          <div style="font-weight:600;color:${d.deliveryChosen?'#166534':'#b91c1c'}">${esc(deliveryText(d))}</div>
+          ${d.deliveryNote?`<div style="font-size:12.5px;color:var(--ink-soft)">หมายเหตุ: ${esc(d.deliveryNote)}</div>`:''}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>สินค้า</th><th>Tracking No</th><th>รถ/เรือ</th><th>น้ำหนัก(KG)</th><th>L</th><th>W</th><th>H</th><th>CBM</th><th>ยอดค่าขนส่ง</th></tr></thead>
+        <tbody><tr>
+          <td>${esc(first.name||'ทั่วไป')}</td><td class="mono">${esc(d.trackingNo||'-')}</td><td>${esc(d.shipMethod||'รถ')}</td>
+          <td class="mono">${weightKg?fmt(weightKg):'-'}</td><td class="mono">${dim(L)}</td><td class="mono">${dim(W)}</td><td class="mono">${dim(H)}</td>
+          <td class="mono">${CBM?CBM.toFixed(4):'-'}</td><td class="mono">${fmt(shipFee)}</td>
+        </tr></tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-t">💰 สรุปค่าบริการ</div>
+      <div class="summary">
+        ${sumRows}
+        <div class="r sub"><span class="k">จำนวนเงินรวมทั้งสิ้น</span><span class="v">${fmt(subtotal)}</span></div>
+        <div class="r"><span class="k">หักภาษี ณ ที่จ่าย (${taxPct}%)</span><span class="v">${fmt(tax)}</span></div>
+        <div class="r total"><span class="k">ยอดชำระ</span><span class="v">${fmt(grand)} ฿</span></div>
+      </div>
+    </div>`;
+
+  $('#actions').style.display='';
+  $('#btnVerify').disabled=verified;
+  $('#btnVerify').textContent=verified?'✅ ยืนยันแล้ว':'✅ ยืนยันค่าบริการ → แจ้งลูกค้า';
+}
+
+async function verify(){
+  if(!confirm('ยืนยันค่าบริการของบิลนี้? ลูกค้าจะถูกแจ้งให้ชำระเงิน')) return;
+  const btn=$('#btnVerify'); btn.disabled=true; btn.textContent='กำลังยืนยัน…';
+  try{
+    const r=await fetch(`/api/orders/update?no=${encodeURIComponent(no)}`,{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({ billStatus:'AWAIT_PAY' }),
+    });
+    const d=await r.json(); if(!d.ok) throw new Error(d.error||'ยืนยันไม่สำเร็จ');
+    alert('✅ ยืนยันค่าบริการแล้ว — ลูกค้าจะเห็นเลขบัญชีให้ชำระเงิน');
+    load();
+  }catch(e){ alert('❌ '+e.message); btn.disabled=false; btn.textContent='✅ ยืนยันค่าบริการ → แจ้งลูกค้า'; }
+}
+
+load();
+</script>
+</body>
+</html>

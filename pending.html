@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>รอชำระเงิน · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;--bg:#FAF6EE;--surface:#FFFFFF;--border:#ECE2CE;--border-soft:#F0E9D8;--green:#16a34a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 16px 70px}
+h1{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:18px}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;box-shadow:0 2px 10px rgba(124,103,57,.07);overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px;color:var(--brand-700)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{background:var(--brand-50);color:var(--ink-soft);font-weight:600;padding:10px 8px;text-align:center;white-space:nowrap}
+tbody td{padding:10px 8px;border-bottom:1px solid var(--border-soft);text-align:center;white-space:nowrap}
+tbody tr:hover{background:var(--brand-50)}
+.po-link{color:var(--brand-700);font-weight:700;text-decoration:underline;cursor:pointer}
+.x{color:#dc2626;font-weight:700}.ok{color:#16a34a;font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#b45309}.pill::before{content:"●"}
+.pay{background:var(--green);color:#fff;border:0;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.pay:disabled{opacity:.5;cursor:not-allowed}
+.loading,.empty{text-align:center;padding:60px;color:var(--ink-soft)}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#3C2A0E;color:#cfd8de;display:flex;flex-direction:column;z-index:60;overflow-y:auto;transition:transform .25s}
+.sb-prof{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-prof img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--brand)}
+.sb-prof .nm{font-weight:600;font-size:14px;color:#fff;text-align:center}
+.sb-prof .cr{font-size:12px;color:#F5B301;font-weight:600}
+.sb-nav{padding:10px 0;flex:1}
+.sb-nav a{display:flex;align-items:center;gap:11px;padding:12px 20px;font-size:14px;color:#cfd8de;border-left:3px solid transparent}
+.sb-nav a:hover{background:rgba(255,255,255,.05);color:#fff}
+.sb-nav a.active{background:rgba(0,0,0,.25);color:#fff;border-left-color:var(--brand);font-weight:600}
+.sb-nav .ic{width:18px;text-align:center;font-size:15px}
+.main{margin-left:240px}
+.ytop{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:linear-gradient(90deg,#B89865,#9C8654);padding:10px 18px;position:sticky;top:0;z-index:40}
+.ytop .brand{font-family:'Playfair Display',serif;font-weight:700;letter-spacing:2px;color:#fff;font-size:18px;flex:1}
+.ytop .credit{background:rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:8px 14px;font-weight:700;font-size:14px}
+.ytop .ybtn{background:rgba(255,255,255,.25);color:#fff;border:0;border-radius:8px;padding:9px 13px;font-size:13px;font-weight:600;cursor:pointer}
+#navToggle{display:none;position:fixed;top:12px;left:12px;z-index:70;background:#3C2A0E;color:#fff;border:0;border-radius:8px;width:42px;height:42px;font-size:20px;cursor:pointer}
+.sb-bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+@media(max-width:760px){.wrap{padding:16px 8px 60px}table{font-size:11.5px}.main{margin-left:0;padding-top:54px}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}#navToggle{display:block}.sidebar.open ~ .sb-bd{display:block}.ytop .brand{font-size:15px}}
+</style>
+<style id="numFont">
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+.order-no,.po-no,.po-link,.no,.ono-box .no,.stat .n,.val,.detail-row .v,.price-cell,.credit,.tot,.lines .tot,.summary .v,.totals .v,.ytop .credit,.sb-prof .cr,.amt,.amount,.mo-card .no,.date-cell,.items-count{font-family:'IBM Plex Mono',ui-monospace,'IBM Plex Sans Thai',monospace !important;font-style:normal !important;font-variant-numeric:tabular-nums}
+body{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<button id="navToggle" aria-label="เมนู">☰</button>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-prof">
+    <img id="sbPic" src="/logo.png?v=2" alt=""/>
+    <div class="nm" id="sbName">ผู้ใช้</div>
+    <div class="cr" id="sbCredit">💰 0.00 ฿</div>
+  </div>
+  <nav class="sb-nav">
+    <a href="/"><span class="ic">🏠</span> หน้าหลัก</a>
+    <a href="/topup.html"><span class="ic">💳</span> การเงิน (เติมเงิน)</a>
+    <a href="/orders.html"><span class="ic">📄</span> รายการสั่งซื้อสินค้าจีน</a>
+    <a href="/pending.html" class="active"><span class="ic">⏳</span> รอชำระเงิน</a>
+    <a href="/warehouse-cn.html"><span class="ic">📦</span> รอสินค้าเข้าโกดังจีน</a>
+    <a href="/bills.html"><span class="ic">🧾</span> รายการบิลค่าขนส่ง</a>
+    <a href="/track-list.html"><span class="ic">🚚</span> ติดตามสถานะสินค้า</a>
+    <a href="/reviews.html"><span class="ic">⭐</span> รีวิว</a>
+  </nav>
+</aside>
+<div class="sb-bd" id="sbBd"></div>
+
+<main class="main">
+  <div class="ytop">
+    <div class="brand">OVERSEA</div>
+    <span class="credit" id="yCredit">💰 0.00 ฿</span>
+    <a href="/topup.html" class="ybtn">＋ เติมเงิน</a>
+  </div>
+  <div class="wrap">
+    <h1>⏳ รอชำระเงิน</h1>
+    <div class="card">
+      <div class="card-head" id="listHead">รายการทั้งหมด</div>
+      <div id="listBody"><div class="loading">กำลังโหลด…</div></div>
+    </div>
+  </div>
+</main>
+<div class="toast" id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1b14;color:#fff;padding:12px 22px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;z-index:9999;transition:.25s all"></div>
+
+<script>
+let RMB_RATE=5.2;
+async function loadRate(){ try{ const r=await fetch('/api/orders?rate=1'); const d=await r.json(); if(d?.ok) RMB_RATE=Number(d.rate||d.payRate)||RMB_RATE; }catch(e){} }
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const toast=(m)=>{const t=$('#toast');t.textContent=m;t.style.opacity=1;t.style.transform='translateX(-50%) translateY(0)';setTimeout(()=>{t.style.opacity=0;t.style.transform='translateX(-50%) translateY(20px)';},2800);};
+function fmtDate(iso){if(!iso)return '-';const d=new Date(iso);return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function pick(note,key){const m=(note||'').split('·').map(s=>s.trim()).find(s=>s.startsWith(key+':'));return m?m.split(':')[1].trim():'';}
+function sumRmb(o){return (o.items||[]).reduce((s,it)=>s+(Number(it.priceRmb)||0)*(Number(it.qty)||1),0);}
+const me=JSON.parse(localStorage.getItem('opg_user')||'null');
+let credit=0;
+
+$('#navToggle').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+$('#sbBd').addEventListener('click',()=>$('#sidebar').classList.remove('open'));
+if(me){ if(me.picture)$('#sbPic').src=me.picture; $('#sbName').textContent=me.name||me.email; }
+function setCredit(c){credit=Number(c)||0;$('#sbCredit').textContent='💰 '+fmt(credit)+' ฿';$('#yCredit').textContent='💰 '+fmt(credit)+' ฿';}
+
+const HEAD=`<thead><tr>
+  <th>วันที่ทำรายการ</th><th>เลขที่สั่งซื้อ</th><th>การจัดส่ง</th><th>ตีลังไม้</th><th>QC</th>
+  <th>ค่าบริการเปิดบิล</th><th>จำนวนรายการ</th><th>ค่าจัดส่ง (THB)</th><th>ราคาสุทธิ (RMB)</th>
+  <th>ราคาสุทธิ (THB)</th><th>ส่วนลด (THB)</th><th>ยอดชำระ (THB)</th><th>สถานะ</th><th>จัดการ</th></tr></thead>`;
+
+async function load(){
+  if(!me||!me.email){ $('#listBody').innerHTML=`<div class="empty">กรุณาเข้าสู่ระบบก่อน<br><a href="/#order" class="btn">เข้าสู่ระบบ</a></div>`; return; }
+  await loadRate();
+  let orders=[];
+  try{
+    const [ro,rc]=await Promise.all([
+      fetch(`/api/orders/user?email=${encodeURIComponent(me.email.toLowerCase())}`),
+      fetch(`/api/topup?email=${encodeURIComponent(me.email.toLowerCase())}`)]);
+    const d=await ro.json(); orders=(d.ok&&d.orders)?d.orders:[];
+    const dc=await rc.json(); setCredit(dc.credit||0);
+  }catch(e){}
+  const pend=orders.filter(o=>o.status==='QUOTED');
+  $('#listHead').textContent=`รายการทั้งหมด (${pend.length})`;
+  if(!pend.length){ $('#listBody').innerHTML=`<div style="overflow-x:auto"><table>${HEAD}<tbody><tr><td colspan="14" style="padding:40px;color:var(--ink-soft)">🎉 ไม่มีรายการรอชำระเงิน</td></tr></tbody></table></div>`; return; }
+  const rows=pend.map(o=>{
+    const rmb=sumRmb(o), total=Number(o.total)||0, ship=Number(o.shipping)||0, billFee=Number(o.billFee)||0, disc=Number(o.discount)||0;
+    const sum=total+ship+billFee-disc;
+    const poE=!!o.shipMethod;
+    const shipM=o.shipMethod||pick(o.note,'จัดส่ง')||'-', crate=poE?!!o.crate:pick(o.note,'ตีลังไม้')==='ตีลังไม้', qc=poE?!!o.qc:pick(o.note,'QC')==='ต้องการ';
+    const enough=credit>=sum;
+    return `<tr>
+      <td>${fmtDate(o.createdAt)}</td>
+      <td><a class="po-link" href="po.html?no=${encodeURIComponent(o.orderNo)}">${esc(o.orderNo)}</a></td>
+      <td>${esc(shipM)}</td>
+      <td>${crate?'<span class="ok">✔</span>':'<span class="x">✘</span>'}</td>
+      <td>${qc?'<span class="ok">✔</span>':'<span class="x">✘</span>'}</td>
+      <td>${fmt(billFee)}</td><td>${(o.items||[]).length}</td><td>${fmt(ship)}</td>
+      <td>${fmt(rmb)}</td><td>${fmt(total||rmb*RMB_RATE)}</td><td>${fmt(disc)}</td>
+      <td style="font-weight:700;color:var(--brand-700)">${fmt(sum)}</td>
+      <td><span class="pill">รอชำระเงิน</span></td>
+      <td><button class="pay" data-pay="${o.orderNo}" data-sum="${sum}" ${enough?'':'disabled'} title="${enough?'':'เครดิตไม่พอ'}">💳 ชำระ</button></td>
+    </tr>`;
+  }).join('');
+  $('#listBody').innerHTML=`<div style="overflow-x:auto"><table>${HEAD}<tbody>${rows}</tbody></table></div>`;
+  document.querySelectorAll('[data-pay]').forEach(b=>b.addEventListener('click',()=>pay(b.dataset.pay,Number(b.dataset.sum),b)));
+}
+
+async function pay(no,sum,btn){
+  if(!confirm(`ชำระเงินออเดอร์ ${no} จำนวน ฿${fmt(sum)} จากเครดิต?`)) return;
+  btn.disabled=true; btn.textContent='…';
+  try{
+    const r=await fetch(`/api/orders/pay?no=${encodeURIComponent(no)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:me.email.toLowerCase()})});
+    const d=await r.json();
+    if(!d.ok){ if(d.need){ toast('เครดิตไม่พอ ขาดอีก ฿'+fmt(d.need)); setTimeout(()=>location.href='/topup.html',1200); return; } throw new Error(d.error||'ชำระไม่สำเร็จ'); }
+    setCredit(d.credit); toast('✅ ชำระเงินสำเร็จ ฿'+fmt(d.amount)); load();
+  }catch(e){ toast('❌ '+e.message); btn.disabled=false; btn.textContent='💳 ชำระ'; }
+}
+load();
+</script>
+</body>
+</html>

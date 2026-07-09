@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>รายการบิลค่าขนส่ง · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;--bg:#FAF6EE;--surface:#FFFFFF;--border:#ECE2CE;--border-soft:#F0E9D8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#3C2A0E;color:#cfd8de;display:flex;flex-direction:column;z-index:60;overflow-y:auto;transition:transform .25s}
+.sb-prof{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-prof img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--brand)}
+.sb-prof .nm{font-weight:600;font-size:14px;color:#fff;text-align:center}
+.sb-prof .cr{font-size:12px;color:#F5B301;font-weight:600}
+.sb-nav{padding:10px 0;flex:1}
+.sb-nav a{display:flex;align-items:center;gap:11px;padding:12px 20px;font-size:14px;color:#cfd8de;border-left:3px solid transparent}
+.sb-nav a:hover{background:rgba(255,255,255,.05);color:#fff}
+.sb-nav a.active{background:rgba(0,0,0,.25);color:#fff;border-left-color:var(--brand);font-weight:600}
+.sb-nav a.sub{padding-left:46px;font-size:13px;color:#9aa6ae}
+.sb-nav a.sub.active{color:#fff}
+.sb-nav .ic{width:18px;text-align:center}
+.main{margin-left:240px}
+.ytop{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#B89865,#9C8654);padding:10px 18px;position:sticky;top:0;z-index:40}
+.ytop h1{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:#fff;flex:1}
+.crumbs{font-size:12.5px;color:rgba(255,255,255,.85)}
+.wrap{max-width:1240px;margin:0 auto;padding:24px 16px 70px}
+h2{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:14px;color:var(--ink)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar select,.toolbar input{padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:14px;background:#fff;outline:none}
+.toolbar input{flex:1;min-width:200px}
+.btn{background:var(--brand-600);color:#fff;border:0;border-radius:9px;padding:10px 18px;font-weight:600;cursor:pointer;font-family:inherit;font-size:13.5px}
+.btn:hover{background:var(--brand-700)}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(124,103,57,.07);margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--brand-50);color:var(--ink-soft);font-weight:600;padding:11px 8px;text-align:center;white-space:nowrap}
+tbody td{padding:11px 8px;border-bottom:1px solid var(--border-soft);text-align:center}
+tbody tr:hover{background:var(--brand-50)}
+.po-link{color:var(--brand-700);font-weight:700;text-decoration:underline}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 11px;border-radius:999px}
+.pill::before{content:"●"}
+.pill.unpaid{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.pill.paid{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.foot{padding:12px 16px;background:#fafafa;font-size:12.5px;color:var(--ink-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.note-bar{background:#fef9c3;border:1px solid #fde68a;color:#854d0e;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px;line-height:1.7}
+.empty{text-align:center;padding:30px;color:var(--ink-soft);font-size:13.5px}
+#navToggle{display:none;position:fixed;top:12px;left:12px;z-index:70;background:#3C2A0E;color:#fff;border:0;border-radius:8px;width:42px;height:42px;font-size:20px;cursor:pointer}
+.sb-bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+@media(max-width:760px){.main{margin-left:0;padding-top:54px}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}#navToggle{display:block}.sidebar.open ~ .sb-bd{display:block}.wrap{padding:16px 8px 60px}table{font-size:11.5px}}
+</style>
+<style id="numFont">
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+.po-link,.no,.val,.amt{font-family:'IBM Plex Mono',ui-monospace,'IBM Plex Sans Thai',monospace !important;font-variant-numeric:tabular-nums}
+body{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<button id="navToggle" aria-label="เมนู">☰</button>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-prof">
+    <img id="sbPic" src="/logo.png?v=2" alt=""/>
+    <div class="nm" id="sbName">ผู้ใช้</div>
+    <div class="cr" id="sbCredit">💰 0.00 ฿</div>
+  </div>
+  <nav class="sb-nav">
+    <a href="/"><span class="ic">🏠</span> หน้าหลัก</a>
+    <a href="/topup.html"><span class="ic">💳</span> การเงิน (เติมเงิน)</a>
+    <a href="/orders.html"><span class="ic">📄</span> รายการสั่งซื้อสินค้าจีน</a>
+    <a href="/bills.html" class="active"><span class="ic">🧾</span> รายการบิลค่าขนส่ง</a>
+    <a href="/bills.html" class="sub active">▸ รายการบิลค่าขนส่ง</a>
+    <a href="/bills-history.html" class="sub">▸ รายการประวัติบิล</a>
+    <a href="/track-list.html"><span class="ic">🚚</span> ติดตามสถานะสินค้า</a>
+    <a href="/reviews.html"><span class="ic">⭐</span> รีวิว</a>
+  </nav>
+</aside>
+<div class="sb-bd" id="sbBd"></div>
+
+<main class="main">
+  <div class="ytop">
+    <h1>🧾 รายการบิลค่าขนส่ง</h1>
+    <div class="crumbs">🏠 หน้าหลัก › รายการบิลค่าขนส่ง</div>
+  </div>
+  <div class="wrap">
+
+    <!-- รายการวางบิล -->
+    <h2>รายการวางบิล</h2>
+    <div class="toolbar">
+      <select id="fStatus"><option value="ALL">สถานะทั้งหมด</option><option value="UNPAID">รอชำระเงิน</option><option value="PAID">ชำระเงินแล้ว</option></select>
+      <input type="text" id="fSearch" placeholder="ค้นหาข้อมูล"/>
+    </div>
+    <div class="card">
+      <div style="overflow-x:auto"><table>
+        <thead><tr>
+          <th style="width:34px"><input type="checkbox" id="checkAll"/></th><th>วันที่ออกบิล</th><th>เลขที่บิล</th><th>จำนวนรายการ</th><th>ประเภทจัดส่ง</th>
+          <th>ยอดชำระ THB</th><th>สถานะ</th><th>เลขแทรคส่งของ</th><th>เจ้าหน้าที่ หมายเหตุ</th>
+        </tr></thead>
+        <tbody id="billsBody"><tr><td colspan="9" class="empty">กำลังโหลด…</td></tr></tbody>
+      </table></div>
+      <div class="foot"><span id="billsCount">Showing 0 to 0 of 0 entries</span></div>
+    </div>
+
+    <!-- รายการรวมบิล -->
+    <h2 style="margin-top:30px">รายการรวมบิล</h2>
+    <div class="note-bar">***การรวมสินค้า บริษัทจะรวมสินค้าให้ไม่เกินกระสอบละ 30KG เท่านั้น*** การรวมบิลจะอ้างอิงการจัดส่งและที่อยู่การจัดส่งจากบิลรวม BG เท่านั้น***</div>
+    <div class="toolbar">
+      <button class="btn" id="btnGroup" style="background:#F5B301;color:#1e1b14">📦 สร้างกลุ่มบิล</button>
+      <input type="text" id="gSearch" placeholder="ค้นหาข้อมูล"/>
+    </div>
+    <div class="card">
+      <div style="overflow-x:auto"><table>
+        <thead><tr>
+          <th>วันที่ออกบิล</th><th>เลขที่กลุ่มบิล</th><th>จำนวนรายการ</th><th>ประเภทจัดส่ง</th>
+          <th>ยอดชำระ THB</th><th>สถานะ</th><th>เลขแทรคส่งของ</th><th>เจ้าหน้าที่ หมายเหตุ</th>
+        </tr></thead>
+        <tbody id="groupsBody"><tr><td colspan="8" class="empty">No data available in table</td></tr></tbody>
+      </table></div>
+      <div class="foot"><span id="groupsCount">Showing 0 to 0 of 0 entries</span></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmtDate(iso){if(!iso)return '-';const d=new Date(iso);return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+const me=JSON.parse(localStorage.getItem('opg_user')||'null');
+if(me){ if(me.picture)$('#sbPic').src=me.picture; $('#sbName').textContent=me.name||me.email;
+  fetch(`/api/topup?email=${encodeURIComponent(me.email.toLowerCase())}`).then(r=>r.json()).then(d=>{ $('#sbCredit').textContent='💰 '+fmt(d.credit||0)+' ฿';}).catch(()=>{}); }
+$('#navToggle').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+$('#sbBd').addEventListener('click',()=>$('#sidebar').classList.remove('open'));
+
+/* บิลค่าขนส่งจะถูกสร้างเมื่อสินค้าถึงโกดังไทย (shipStatus = TH_WH ขึ้นไป) */
+const SHIP_TEXT={TH_WH:'ถึงโกดังไทย',DELIVERING:'กำลังนำส่ง',DELIVERED:'จัดส่งสำเร็จ'};
+/* เลขที่บิลแบบ V-Space: BL + YYMMDD + เลขท้ายออเดอร์ เช่น BL260619-0011 */
+function billNoOf(o){
+  const d=new Date(o.updatedAt||o.createdAt||Date.now());
+  const code=`${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const seq=(o.orderNo||'').replace(/\D/g,'').slice(-4)||'0000';
+  return `BL${code}-${seq}`;
+}
+let bills=[];
+async function load(){
+  if(!me||!me.email){ $('#billsBody').innerHTML='<tr><td colspan="8" class="empty">กรุณาเข้าสู่ระบบก่อน</td></tr>'; return; }
+  let orders=[];
+  try{ const r=await fetch(`/api/orders/user?email=${encodeURIComponent(me.email.toLowerCase())}`); const d=await r.json(); orders=(d.ok&&d.orders)?d.orders:[];}catch(e){}
+  /* ออเดอร์ที่ออกบิลแล้ว = สินค้าถึงโกดังไทย (shipStatus) หรือเข้า bill flow (billStatus) */
+  const BILLED = ['REVIEW','AWAIT_PAY','SLIP','PAID','SHIPPED','DELIVERED'];
+  bills = orders.filter(o=>['TH_WH','DELIVERING','DELIVERED'].includes(o.shipStatus) || BILLED.includes(o.billStatus));
+  render();
+}
+const BS={
+  REVIEW:['ตรวจสอบค่าบริการ','#f59e0b'], AWAIT_PAY:['รอชำระเงิน','#f59e0b'], SLIP:['ตรวจสอบยอดเงิน','#0ea5e9'],
+  PAID:['เตรียมจัดส่ง','#0ea5e9'], SHIPPED:['จัดส่งแล้ว','#0ea5e9'], DELIVERED:['จัดส่งเรียบร้อย','#16a34a'],
+};
+function billTotal(o){
+  const sub=(Number(o.shipping)||0)+(Number(o.cnShipFee)||0)+(Number(o.sackFee)||0)+(Number(o.crateFee)||0)+(Number(o.qcFee)||0)+(Number(o.billFee)||0)-(Number(o.discount)||0);
+  return sub-(sub*(Number(o.taxPct)||0)/100);
+}
+function statusCellOf(o){
+  const st=BS[o.billStatus];
+  return st
+    ? `<a href="bill-detail.html?no=${encodeURIComponent(o.orderNo)}" style="color:${st[1]};font-weight:600;text-decoration:underline">${st[0]}</a>`
+    : `<a href="bill-detail.html?no=${encodeURIComponent(o.orderNo)}" style="color:#f59e0b;font-weight:600;text-decoration:underline">เลือกการจัดส่ง</a>`;
+}
+function render(){
+  const sf=$('#fStatus').value, q=$('#fSearch').value.trim().toLowerCase();
+  const PAID_SET=['PAID','SHIPPED','DELIVERED'];
+  /* แยกบิลที่อยู่ในกลุ่มออกไปตารางรวมบิล */
+  let list = bills.filter(o=>!o.billGroup);
+  if(sf==='UNPAID') list=list.filter(o=>!PAID_SET.includes(o.billStatus));
+  if(sf==='PAID')   list=list.filter(o=>PAID_SET.includes(o.billStatus));
+  if(q) list=list.filter(o=>o.orderNo.toLowerCase().includes(q));
+  renderGroups();
+  if(!list.length){ $('#billsBody').innerHTML='<tr><td colspan="9" class="empty">No data available in table</td></tr>'; $('#billsCount').textContent='Showing 0 to 0 of 0 entries'; return; }
+  $('#billsBody').innerHTML=list.map(o=>{
+    const sum=billTotal(o);
+    const canGroup = !['SHIPPED','DELIVERED'].includes(o.billStatus);
+    return `<tr>
+      <td>${canGroup?`<input type="checkbox" class="grpChk" value="${esc(o.orderNo)}"/>`:''}</td>
+      <td>${fmtDate(o.updatedAt||o.createdAt)}</td>
+      <td><a class="po-link" href="bill-detail.html?no=${encodeURIComponent(o.orderNo)}">${esc(billNoOf(o))}</a></td>
+      <td>${(o.items||[]).length}</td>
+      <td>${o.deliveryChosen?esc(o.deliveryCarrier||o.deliveryType||'-'):'<span style="color:var(--ink-xsoft)">-</span>'}</td>
+      <td style="font-weight:700;color:var(--brand-700)">${fmt(sum)}</td>
+      <td>${statusCellOf(o)}</td>
+      <td>${esc(o.thTrackingNo||'-')}</td>
+      <td>${esc(o.adminNote||'')}</td>
+    </tr>`;
+  }).join('');
+  $('#billsCount').textContent=`Showing 1 to ${list.length} of ${list.length} entries`;
+}
+/* ── ตารางรวมบิล: จัดกลุ่มบิลตาม billGroup ── */
+function renderGroups(){
+  const gq=($('#gSearch')?.value||'').trim().toLowerCase();
+  const groups={};
+  bills.filter(o=>o.billGroup).forEach(o=>{ (groups[o.billGroup]=groups[o.billGroup]||[]).push(o); });
+  let keys=Object.keys(groups);
+  if(gq) keys=keys.filter(k=>k.toLowerCase().includes(gq));
+  if(!keys.length){ $('#groupsBody').innerHTML='<tr><td colspan="8" class="empty">No data available in table</td></tr>'; $('#groupsCount').textContent='Showing 0 to 0 of 0 entries'; return; }
+  $('#groupsBody').innerHTML=keys.map(g=>{
+    const os=groups[g];
+    const sum=os.reduce((s,o)=>s+billTotal(o),0);
+    const items=os.reduce((s,o)=>s+(o.items||[]).length,0);
+    const first=os[0];
+    const tn=os.map(o=>o.thTrackingNo).filter(Boolean).join(', ')||'-';
+    return `<tr>
+      <td>${fmtDate(first.updatedAt||first.createdAt)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--brand-700)">${esc(g)} <span style="color:var(--ink-xsoft);font-weight:400">(${os.length} บิล)</span></td>
+      <td>${items}</td>
+      <td>${first.deliveryChosen?esc(first.deliveryCarrier||first.deliveryType||'-'):'<span style="color:var(--ink-xsoft)">-</span>'}</td>
+      <td style="font-weight:700;color:var(--brand-700)">${fmt(sum)}</td>
+      <td>${statusCellOf(first)}</td>
+      <td>${esc(tn)}</td>
+      <td>${esc(first.adminNote||'')}</td>
+    </tr>`;
+  }).join('');
+  $('#groupsCount').textContent=`Showing 1 to ${keys.length} of ${keys.length} entries`;
+}
+
+/* เลือกทั้งหมด */
+document.addEventListener('change',e=>{
+  if(e.target.id==='checkAll'){ document.querySelectorAll('.grpChk').forEach(c=>c.checked=e.target.checked); }
+});
+
+/* สร้างกลุ่มบิล */
+$('#btnGroup').addEventListener('click',async()=>{
+  const picked=[...document.querySelectorAll('.grpChk:checked')].map(c=>c.value);
+  if(picked.length<2){ alert('กรุณาเลือกบิลอย่างน้อย 2 รายการเพื่อรวมกลุ่ม'); return; }
+  if(!confirm(`รวม ${picked.length} บิลเป็นกลุ่มเดียว ส่งพร้อมกัน?`)) return;
+  const btn=$('#btnGroup'); btn.disabled=true; btn.textContent='กำลังรวม…';
+  try{
+    const r=await fetch('/api/orders/bill-action',{ method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'group', orderNos:picked, email:me.email.toLowerCase() }) });
+    const d=await r.json(); if(!d.ok) throw new Error(d.error||'รวมกลุ่มไม่สำเร็จ');
+    alert(`✅ รวมกลุ่มบิลแล้ว: ${d.groupId}`);
+    load();
+  }catch(e){ alert('❌ '+e.message); }
+  finally{ btn.disabled=false; btn.textContent='📦 สร้างกลุ่มบิล'; }
+});
+$('#gSearch').addEventListener('input',renderGroups);
+
+$('#fStatus').addEventListener('change',render);
+$('#fSearch').addEventListener('input',render);
+load();
+</script>
+</body>
+</html>

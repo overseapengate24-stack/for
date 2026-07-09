@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>🚚 การส่งสินค้า · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--bg:#FAF6EE;--border:#ECE2CE}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.7}
+.top{background:linear-gradient(90deg,#B89865,#9C8654);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.top h1{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex:1}
+.top a{color:#fff;font-size:13px;text-decoration:none;background:rgba(255,255,255,.2);padding:7px 14px;border-radius:999px;font-weight:600}
+.wrap{max-width:1180px;margin:0 auto;padding:30px 16px 60px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start}
+@media(max-width:880px){.cards3{grid-template-columns:1fr}}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 4px 16px rgba(124,103,57,.08);margin-bottom:18px}
+.sec-t{font-family:'Playfair Display',serif;font-size:20px;color:var(--brand-700);margin-bottom:14px}
+.step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.step .n{width:32px;height:32px;border-radius:50%;background:var(--brand-600);color:#fff;display:grid;place-items:center;font-weight:700;flex-shrink:0}
+.step .tx b{color:var(--brand-700)}
+.step .tx div{font-size:13.5px;color:var(--ink-soft)}
+.addr-box{background:var(--brand-50);border:1.5px solid var(--brand-100);border-radius:14px;padding:18px;text-align:center}
+.addr-box .lbl{font-size:12.5px;color:var(--ink-soft);margin-bottom:6px}
+.addr-box .a{font-size:18px;font-weight:700;color:var(--brand-700);line-height:1.6}
+.addr-box .tel{font-size:14px;color:var(--ink);margin-top:8px}
+.copy{margin-top:14px;background:var(--brand-600);color:#fff;border:0;border-radius:9px;padding:10px 20px;font-family:inherit;font-weight:600;cursor:pointer}
+.copy:hover{background:var(--brand-700)}
+.note{background:#fffbeb;border:1px solid #fde68a;color:#854d0e;border-radius:10px;padding:12px 14px;font-size:13px;margin-top:14px}
+.info4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+</style>
+</head>
+<body>
+<div class="top">
+  <a href="/">← หน้าหลัก</a>
+  <h1>🚚 การส่งสินค้า</h1>
+</div>
+<div class="wrap">
+ <div class="cards3">
+
+  <div class="card">
+    <div class="sec-t">📦 วิธีส่งสินค้าเข้าโกดังเรา</div>
+    <div class="step"><div class="n">1</div><div class="tx"><b>สั่งซื้อสินค้ากับร้านจีน</b><div>หรือมีสินค้าที่ต้องการนำเข้าอยู่แล้ว</div></div></div>
+    <div class="step"><div class="n">2</div><div class="tx"><b>ส่งสินค้ามาที่อยู่โกดังของเรา</b><div>ใช้ที่อยู่ด้านล่างเป็นที่อยู่ผู้รับตอนกรอกในร้านจีน/ขนส่ง</div></div></div>
+    <div class="step"><div class="n">3</div><div class="tx"><b>แจ้งเลขพัสดุกับทีมงาน</b><div>เพื่อให้เราติดตามและรับของเข้าโกดังให้</div></div></div>
+    <div class="step"><div class="n">4</div><div class="tx"><b>ของเข้าโกดัง → ส่งมาไทย</b><div>ทีมงานแจ้งยอดค่าขนส่ง แล้วจัดส่งถึงคุณ</div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-t"> ที่อยู่โกดังสำหรับส่งสินค้า</div>
+    <div class="addr-box">
+      <div class="lbl">ผู้รับ / ที่อยู่จัดส่ง</div>
+      <div class="a">Oversea PenGatee<br>112/41 Lanna Home<br>Chiang Mai, Thailand</div>
+      <div class="tel">&#9742; 095-760-6258</div>
+      <button class="copy" id="copyBtn">📋 คัดลอกที่อยู่</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-t">📋 ข้อมูลที่ต้องแจ้งเรา (หลังส่งของ)</div>
+    <div class="info4">
+      <div style="background:var(--brand-50);border:1px solid var(--brand-100);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:24px">🔖</div><b style="color:var(--brand-700);font-size:13.5px">เลขพัสดุ (Tracking)</b>
+        <div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px">เลขขนส่งจีนที่ได้มา</div>
+      </div>
+      <div style="background:var(--brand-50);border:1px solid var(--brand-100);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:24px">🔗</div><b style="color:var(--brand-700);font-size:13.5px">ร้านค้า + ลิงก์</b>
+        <div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px">Taobao / Tmall / 1688</div>
+      </div>
+      <div style="background:var(--brand-50);border:1px solid var(--brand-100);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:24px">📦</div><b style="color:var(--brand-700);font-size:13.5px">จำนวนกล่อง / ชิ้น</b>
+        <div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px">เพื่อตรวจรับให้ครบ</div>
+      </div>
+      <div style="background:var(--brand-50);border:1px solid var(--brand-100);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:24px">📷</div><b style="color:var(--brand-700);font-size:13.5px">รูปสินค้า (ถ้ามี)</b>
+        <div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px">ตรวจรับเร็วขึ้น</div>
+      </div>
+    </div>
+  </div>
+
+ </div>
+
+  <!-- ฟอร์มแจ้งส่งของเข้าโกดัง -->
+  <div class="card" style="margin-top:18px">
+    <div class="sec-t">📤 แจ้งส่งของเข้าโกดัง</div>
+    <div id="impLogin" style="display:none;text-align:center;padding:20px;color:var(--ink-soft)">กรุณา <a href="/" style="color:var(--brand-700);text-decoration:underline">เข้าสู่ระบบ</a> ก่อนแจ้งส่งของ</div>
+    <form id="impForm" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="grid-column:1/-1"><label style="font-size:13px;color:var(--ink-soft);font-weight:600">เลขพัสดุ (Tracking) <span style="color:#e11">*</span></label>
+        <input id="impTk" placeholder="เลขขนส่งจีนที่ร้าน/ขนส่งให้" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"/></div>
+      <div style="grid-column:1/-1"><label style="font-size:13px;color:var(--ink-soft);font-weight:600">การจัดส่ง</label>
+        <select id="impShip" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"><option value="รถ">🚚 ทางรถ</option><option value="เรือ">🚢 ทางเรือ</option></select></div>
+      <div style="grid-column:1/-1"><label style="font-size:13px;color:var(--ink-soft);font-weight:600">ประเภทสินค้า</label>
+        <select id="impType" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"><option value="">— เลือกประเภท —</option><option>สินค้าทั่วไป</option><option>สินค้าแบรนด์/ลิขสิทธิ์</option><option>อ.ย</option><option>ม.อ.ก</option></select></div>
+      <div style="grid-column:1/-1"><label style="font-size:13px;color:var(--ink-soft);font-weight:600">ลิงก์สินค้า</label>
+        <input id="impUrl" type="url" placeholder="ลิงก์ Taobao / Tmall / 1688 (ถ้ามี)" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"/></div>
+      <div style="grid-column:1/-1"><label style="font-size:13px;color:var(--ink-soft);font-weight:600">จำนวนชิ้น</label>
+        <input id="impQty" type="number" min="1" value="1" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"/></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600"><input type="checkbox" id="impCrate"/> 🪵 ตีลังไม้</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600"><input type="checkbox" id="impQc"/> 🔍 QC สินค้า</label>
+      <div style="grid-column:1/-1"><label style="font-size:13px;color:var(--ink-soft);font-weight:600">รูปสินค้า (ถ้ามี)</label><br/>
+        <input type="file" id="impFile" accept="image/*" style="display:none"/>
+        <button type="button" id="impPick" class="copy" style="margin-top:4px">📷 แนบรูป</button>
+        <span id="impName" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span>
+        <input type="hidden" id="impImg"/>
+      </div>
+      <button type="submit" class="copy" id="impSubmit" style="grid-column:1/-1;background:#16a34a;padding:13px">📤 แจ้งส่งของเข้าโกดัง</button>
+    </form>
+  </div>
+
+</div>
+<script>
+const me=JSON.parse(localStorage.getItem('opg_user')||'null');
+if(!me||!me.email){ document.getElementById('impLogin').style.display='block'; document.getElementById('impForm').style.display='none'; }
+document.getElementById('impPick').addEventListener('click',()=>document.getElementById('impFile').click());
+document.getElementById('impFile').addEventListener('change',function(){
+  var f=this.files[0]; if(!f) return;
+  var rd=new FileReader(); rd.onload=()=>{ var img=new Image(); img.onload=()=>{
+    var max=900,w=img.width,h=img.height; if(w>max){h=Math.round(h*max/w);w=max;}
+    var cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+    document.getElementById('impImg').value=cv.toDataURL('image/jpeg',0.8);
+    document.getElementById('impName').textContent='✅ แนบรูปแล้ว';
+  }; img.src=rd.result; }; rd.readAsDataURL(f);
+});
+document.getElementById('impUrl').addEventListener('input',function(){
+  if(/[฀-๿]/.test(this.value)){ this.value=this.value.replace(/[฀-๿]/g,''); this.style.borderColor='#dc2626'; }
+  else { this.style.borderColor=''; }
+});
+document.getElementById('impForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  if(!me||!me.email){ alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+  var tk=document.getElementById('impTk').value.trim();
+  if(!tk){ alert('กรุณากรอกเลขพัสดุ (Tracking)'); return; }
+  var iurl=document.getElementById('impUrl').value.trim();
+  if(iurl && (/[฀-๿]/.test(iurl) || !(/^https?:\/\//i.test(iurl) || /[a-z0-9-]+\.[a-z]{2,}/i.test(iurl)))){
+    alert('ช่องลิงก์สินค้าใส่ได้เฉพาะลิงก์/ภาษาอังกฤษ — กรุณาวางลิงก์จริงหรือเว้นว่าง'); return;
+  }
+  var btn=document.getElementById('impSubmit'); btn.disabled=true; btn.textContent='กำลังส่ง…';
+  var payload={
+    kind:'import',
+    customer:{ name:me.name||'', email:me.email.toLowerCase(), lineId:'' },
+    trackingNo:tk, shopName:'', shipMethod:document.getElementById('impShip').value, productType:document.getElementById('impType').value,
+    crate:document.getElementById('impCrate').checked, qc:document.getElementById('impQc').checked,
+    boxes:0,
+    items:[{ url:iurl, name:'ส่งของเข้าโกดัง (Tracking '+tk+')', qty:Number(document.getElementById('impQty').value)||1, imageUrl:document.getElementById('impImg').value||'' }],
+    note:''
+  };
+  try{
+    var r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    var d=await r.json(); if(!d.ok) throw new Error(d.error||'ส่งไม่สำเร็จ');
+    alert('✅ แจ้งส่งของเข้าโกดังแล้ว — เลขที่ '+d.orderNo+'\nทีมงานจะตรวจรับให้ครับ');
+    document.getElementById('impForm').reset(); document.getElementById('impImg').value=''; document.getElementById('impName').textContent='';
+  }catch(err){ alert('❌ '+err.message); }
+  finally{ btn.disabled=false; btn.textContent='📤 แจ้งส่งของเข้าโกดัง'; }
+});
+document.getElementById('copyBtn').addEventListener('click',function(){
+  var t='Oversea PenGate\n112/41 Lanna Home\nChiang Mai, Thailand\nโทร 095-760-6258';
+  navigator.clipboard.writeText(t).then(function(){ var b=document.getElementById('copyBtn'); b.textContent='✅ คัดลอกแล้ว'; setTimeout(function(){b.textContent='📋 คัดลอกที่อยู่';},2000); });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>แจ้งเติมเงินเข้าระบบ · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;--bg:#FAF6EE;--surface:#FFF;--border:#ECE2CE;--border-soft:#F0E9D8;--green:#16a34a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#3C2A0E;color:#cfd8de;display:flex;flex-direction:column;z-index:60;overflow-y:auto;transition:transform .25s}
+.sb-prof{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-prof img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--brand)}
+.sb-prof .nm{font-weight:600;font-size:14px;color:#fff;text-align:center}
+.sb-prof .cr{font-size:12px;color:#F5B301;font-weight:600}
+.sb-nav{padding:10px 0;flex:1}
+.sb-nav a{display:flex;align-items:center;gap:11px;padding:12px 20px;font-size:14px;color:#cfd8de;border-left:3px solid transparent}
+.sb-nav a:hover{background:rgba(255,255,255,.05);color:#fff}
+.sb-nav a.active{background:rgba(0,0,0,.25);color:#fff;border-left-color:var(--brand);font-weight:600}
+.sb-nav a.sub{padding-left:46px;font-size:13px;color:#9aa6ae}
+.sb-nav a.sub.active{color:#fff}
+.sb-nav .ic{width:18px;text-align:center}
+.main{margin-left:240px;padding:24px 20px 70px}
+#navToggle{display:none;position:fixed;top:12px;left:12px;z-index:70;background:#3C2A0E;color:#fff;border:0;border-radius:8px;width:42px;height:42px;font-size:20px;cursor:pointer}
+.sb-bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+h1{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:22px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.main{margin-left:0;padding-top:60px}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}#navToggle{display:block}.sidebar.open ~ .sb-bd{display:block}}
+.lbl{font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;display:block}
+.req{color:#dc2626}
+.bank{border:2px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;display:flex;gap:14px;align-items:flex-start;cursor:pointer;transition:.15s;background:#fff}
+.bank:hover{border-color:var(--brand)}
+.bank.sel{border-color:var(--green);background:#f0fdf4}
+.bank input{margin-top:4px}
+.bank .logo{width:50px;height:50px;border-radius:10px;display:grid;place-items:center;font-size:24px;color:#fff;flex-shrink:0}
+.bank .info b{font-size:15px;display:block}
+.bank .info .no{font-size:18px;font-weight:700;letter-spacing:1px;color:var(--brand-700)}
+.bank .info .nm{font-size:13px;color:var(--ink-soft)}
+.bank .info .hint{font-size:11.5px;color:#1d4ed8;margin-top:4px}
+.field{margin-bottom:14px}
+.input,.textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:14.5px;color:var(--ink);background:#fff;outline:none}
+.input:focus,.textarea:focus{border-color:var(--brand)}
+.textarea{min-height:80px;resize:vertical}
+.row2{display:flex;gap:12px}.row2 .field{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;justify-content:center;border:0;cursor:pointer;font-family:inherit;font-weight:600;font-size:15px;padding:12px 22px;border-radius:10px}
+.btn-green{background:var(--green);color:#fff;width:100%}
+.btn-ghost{background:#fff;border:1.5px solid var(--border);color:var(--ink)}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(124,103,57,.07)}
+.hist{margin-top:24px}
+.hist table{width:100%;border-collapse:collapse;font-size:13px}
+.hist th{background:var(--brand-50);color:var(--ink-soft);padding:8px;text-align:center}
+.hist td{padding:8px;border-bottom:1px solid var(--border-soft);text-align:center}
+.st{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px}
+.st-PENDING{background:#fffbeb;color:#b45309}.st-APPROVED{background:#f0fdf4;color:#16a34a}.st-REJECTED{background:#fef2f2;color:#dc2626}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1b14;color:#fff;padding:12px 22px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;z-index:9999;transition:.25s all}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+<style id="numFont">
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+.order-no,.po-no,.po-link,.no,.ono-box .no,.stat .n,.val,.detail-row .v,.price-cell,.credit,.tot,.lines .tot,.summary .v,.totals .v,.ytop .credit,.sb-prof .cr,.amt,.amount,.mo-card .no,.date-cell,.items-count{font-family:'IBM Plex Mono',ui-monospace,'IBM Plex Sans Thai',monospace !important;font-style:normal !important;font-variant-numeric:tabular-nums}
+body{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<button id="navToggle" aria-label="เมนู">☰</button>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-prof">
+    <img id="sbPic" src="/logo.png?v=2" alt=""/>
+    <div class="nm" id="sbName">ผู้ใช้</div>
+    <div class="cr" id="sbCredit">💰 0.00 ฿</div>
+  </div>
+  <nav class="sb-nav">
+    <a href="/"><span class="ic">🏠</span> หน้าหลัก</a>
+    <a href="/topup.html" class="active"><span class="ic">💳</span> การเงิน</a>
+    <a href="/topup.html" class="sub active">▸ เติมเงิน</a>
+    <a href="/orders.html"><span class="ic">📄</span> รายการสั่งซื้อสินค้าจีน</a>
+    <a href="/bills.html"><span class="ic">🧾</span> รายการบิลค่าขนส่ง</a>
+    <a href="/track-list.html"><span class="ic">🚚</span> ติดตามสถานะสินค้า</a>
+    <a href="/reviews.html"><span class="ic">⭐</span> รีวิว</a>
+  </nav>
+</aside>
+<div class="sb-bd" id="sbBd"></div>
+
+<main class="main">
+  <h1>💳 แจ้งเติมเงินเข้าระบบ</h1>
+  <div class="grid">
+    <div>
+      <label class="lbl">เลือกบัญชีธนาคาร <span class="req">*</span></label>
+      <label class="bank sel">
+        <input type="radio" name="bank" value="กสิกรไทย 106-3-77638-2" checked/>
+        <div class="logo" style="background:#fff;border:1px solid var(--border);overflow:hidden;padding:4px"><img src="/dpa_bank_kbank@2x.png" alt="KBANK" style="width:100%;height:100%;object-fit:contain"/></div>
+        <div class="info">
+          <b>ธนาคารกสิกรไทย (KBANK)</b>
+          <div class="no">106-3-77638-2</div>
+          <div class="nm">ชื่อบัญชี : บจก.โอเวอร์ซี เพนเกต</div>
+          <div class="hint">(*** บัญชีนี้สำหรับเติมเงินเข้าระบบเท่านั้น ***)</div>
+        </div>
+      </label>
+    </div>
+    <div class="card">
+      <div class="row2">
+        <div class="field"><label class="lbl">วันที่โอน <span class="req">*</span></label><input class="input" type="date" id="tDate"/></div>
+        <div class="field"><label class="lbl">เวลา <span class="req">*</span></label><input class="input" type="time" id="tTime"/></div>
+      </div>
+      <div class="field"><label class="lbl">แนบหลักฐาน (สลิป) <span class="req">*</span> <span style="font-weight:400;color:var(--ink-xsoft);font-size:12px">— แอดมินจะตรวจสลิปและเติมเครดิตให้ตามยอดที่โอน</span></label><input type="file" id="tSlip" accept="image/*"/>
+        <div id="tThumb" style="margin-top:8px"></div></div>
+      <div class="field"><label class="lbl">หมายเหตุ</label><textarea class="textarea" id="tNote" placeholder="ระบุเพิ่มเติม (ถ้ามี)"></textarea></div>
+      <button class="btn btn-green" id="tSubmit">✔ ยืนยันรายการ</button>
+    </div>
+  </div>
+
+  <div class="hist card" id="histCard" style="margin-top:24px">
+    <div style="font-weight:700;color:var(--brand-700);margin-bottom:12px">📜 ประวัติการเติมเงิน</div>
+    <div id="histBody"><div style="color:var(--ink-soft);text-align:center;padding:16px">—</div></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);};
+const fmt=(n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const ST={PENDING:'รอตรวจสอบ',APPROVED:'สำเร็จ',REJECTED:'ปฏิเสธ'};
+const me = JSON.parse(localStorage.getItem('opg_user')||'null');
+let slipData='';
+
+/* sidebar */
+$('#navToggle').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+$('#sbBd').addEventListener('click',()=>$('#sidebar').classList.remove('open'));
+if(me){ if(me.picture)$('#sbPic').src=me.picture; $('#sbName').textContent=me.name||me.email; }
+
+/* default date/time */
+const now=new Date();
+$('#tDate').value=now.toISOString().slice(0,10);
+$('#tTime').value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+function resizeImg(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(u);const M=1200;let{width:w,height:h}=img;if(w>h&&w>M){h=h*M/w;w=M;}else if(h>M){w=w*M/h;h=M;}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);let q=.72,d=c.toDataURL('image/jpeg',q);while(d.length>700*1024&&q>.4){q-=.1;d=c.toDataURL('image/jpeg',q);}res(d);};img.onerror=rej;img.src=u;});}
+$('#tSlip').addEventListener('change',async()=>{ if(!$('#tSlip').files[0])return; slipData=await resizeImg($('#tSlip').files[0]); $('#tThumb').innerHTML=`<img src="${slipData}" style="max-height:120px;border-radius:8px;border:1px solid var(--border)"/>`; });
+
+$('#tSubmit').addEventListener('click',async()=>{
+  if(!me||!me.email){ toast('กรุณาเข้าสู่ระบบก่อน'); setTimeout(()=>location.href='/#order',1200); return; }
+  if(!slipData){ toast('กรุณาแนบสลิปการโอน'); return; }
+  const btn=$('#tSubmit'); btn.disabled=true; btn.textContent='กำลังส่ง…';
+  try{
+    const r=await fetch('/api/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      email:me.email, name:me.name||'', bank:document.querySelector('input[name=bank]:checked').value,
+      date:$('#tDate').value, time:$('#tTime').value, note:$('#tNote').value.trim(), slip:slipData })});
+    const d=await r.json(); if(!d.ok) throw new Error(d.error||'ส่งไม่สำเร็จ');
+    toast('✅ แจ้งเติมเงินแล้ว รอแอดมินตรวจสอบ');
+    $('#tNote').value=''; $('#tSlip').value=''; $('#tThumb').innerHTML=''; slipData='';
+    loadHistory();
+  }catch(e){ toast('❌ '+e.message, 4000); }
+  finally{ btn.disabled=false; btn.textContent='✔ ยืนยันรายการ'; }
+});
+
+async function loadHistory(){
+  if(!me||!me.email){ $('#histBody').innerHTML='<div style="text-align:center;color:var(--ink-soft);padding:16px">กรุณาเข้าสู่ระบบ</div>'; return; }
+  try{
+    const r=await fetch(`/api/topup?email=${encodeURIComponent(me.email.toLowerCase())}`); const d=await r.json();
+    $('#sbCredit').textContent='💰 '+fmt(d.credit)+' ฿';
+    const list=(d.topups||[]).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+    if(!list.length){ $('#histBody').innerHTML='<div style="text-align:center;color:var(--ink-soft);padding:16px">ยังไม่มีรายการเติมเงิน</div>'; return; }
+    $('#histBody').innerHTML=`<div style="overflow-x:auto"><table>
+      <thead><tr><th>วันที่แจ้ง</th><th>ธนาคาร</th><th>จำนวน (฿)</th><th>สลิป</th><th>สถานะ</th><th></th></tr></thead>
+      <tbody>${list.map(t=>`<tr>
+        <td>${esc((t.date||'')+' '+(t.time||''))}</td><td>${esc(t.bank||'-')}</td><td>${fmt(t.amount)}</td>
+        <td>${t.slip?`<a href="${t.slip}" target="_blank">ดู</a>`:'-'}</td>
+        <td><span class="st st-${t.status}">${ST[t.status]||t.status}</span></td>
+        <td><button class="del-tu" data-id="${t.id}" style="background:none;border:0;color:#dc2626;cursor:pointer;font-size:15px" title="ลบ">🗑</button></td></tr>`).join('')}</tbody></table></div>`;
+    document.querySelectorAll('.del-tu').forEach(b=>b.addEventListener('click',()=>delTopup(b.dataset.id)));
+  }catch(e){}
+}
+async function delTopup(id){
+  if(!me||!me.email) return;
+  if(!confirm('ลบรายการเติมเงินนี้?')) return;
+  try{
+    const r=await fetch(`/api/topup?id=${encodeURIComponent(id)}&email=${encodeURIComponent(me.email.toLowerCase())}`,{method:'DELETE'});
+    const d=await r.json(); if(!d.ok) throw new Error(d.error||'ลบไม่สำเร็จ');
+    toast('🗑 ลบแล้ว'); loadHistory();
+  }catch(e){ toast('❌ '+e.message); }
+}
+loadHistory();
+</script>
+</body>
+</html>

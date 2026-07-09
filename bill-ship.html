@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>จัดส่ง / เลขขนส่งไทย (แอดมิน) · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:wght@700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--bg:#FAF6EE;--border:#ECE2CE;--border-soft:#F0E9D8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+.top{background:linear-gradient(90deg,#B89865,#9C8654);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.top h1{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex:1}
+.top a{color:#fff;font-size:13px;text-decoration:underline;cursor:pointer}
+.wrap{max-width:620px;margin:0 auto;padding:28px 16px 90px}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:24px;margin-bottom:18px;box-shadow:0 2px 10px rgba(124,103,57,.06)}
+.bill-no{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:20px;color:var(--brand-700)}
+.ro{font-size:13.5px;line-height:1.9}.ro .k{color:var(--ink-soft);display:inline-block;min-width:80px}
+label{display:block;font-size:13px;color:var(--ink-soft);margin:14px 0 5px;font-weight:600}
+input[type=text]{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'IBM Plex Mono',monospace;font-size:15px;outline:none}
+input[type=text]:focus{border-color:var(--brand)}
+.up{border:1.5px dashed var(--brand-100);border-radius:12px;padding:18px;text-align:center;background:var(--brand-50);cursor:pointer}
+.up img{max-width:100%;border-radius:10px;margin-top:10px}
+.btn-y{background:#FFD400;color:#3C2A0E;border:0;border-radius:9px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:inherit}
+.actions{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1.5px solid var(--border);padding:14px 20px;display:flex;gap:12px;justify-content:center;z-index:20}
+.btn{border:0;border-radius:10px;padding:13px 28px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer}
+.btn-ok{background:#0ea5e9;color:#fff}.btn:disabled{opacity:.55;cursor:default}
+.empty{text-align:center;padding:60px;color:var(--ink-soft)}
+.okbox{background:#dbeafe;border:1px solid #93c5fd;color:#1e40af;border-radius:9px;padding:12px 14px;font-size:13.5px;font-weight:600;text-align:center;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>📦 จัดส่ง / เลขขนส่งไทย (แอดมิน)</h1>
+  <a id="viewCust">👁 ดูบิลลูกค้า</a>
+</div>
+<div class="wrap" id="root"><div class="empty">กำลังโหลด…</div></div>
+<div class="actions" id="actions" style="display:none">
+  <button class="btn btn-ok" id="btnSave">✅ บันทึก & แจ้งลูกค้า "จัดส่งแล้ว"</button>
+</div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function billNoOf(o){const d=new Date(o.updatedAt||o.createdAt||Date.now());const code=`${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;const seq=(o.orderNo||'').replace(/\D/g,'').slice(-4)||'0000';return `BL${code}-${seq}`;}
+
+const qs=new URLSearchParams(location.search);
+const no=(qs.get('no')||'').trim().toUpperCase();
+let adminKey=sessionStorage.getItem('opg_admin_key')||'';
+let order=null, photoData='';
+
+$('#viewCust').addEventListener('click',()=>window.open(`/bill-detail.html?no=${encodeURIComponent(no)}`,'_blank'));
+$('#btnSave').addEventListener('click',save);
+
+async function load(){
+  if(!no){ $('#root').innerHTML='<div class="empty">ไม่พบเลขบิล</div>'; return; }
+  if(!adminKey){ adminKey=prompt('ใส่ Admin Key:')||''; if(adminKey) sessionStorage.setItem('opg_admin_key',adminKey); }
+  let d=null;
+  try{ const r=await fetch(`/api/orders/track?no=${encodeURIComponent(no)}`); d=await r.json(); }catch(e){}
+  if(!d||!d.ok||!d.found){ $('#root').innerHTML='<div class="empty">ไม่พบบิลนี้</div>'; return; }
+  order=d; photoData=d.shipPhoto||''; render();
+}
+
+function render(){
+  const d=order, c=d.customer||{}, a=c.address||{};
+  const addrText=[a.detail,a.subdistrict,a.district,a.province,a.postal].filter(Boolean).join(' ')||'-';
+  const shipped=d.billStatus==='SHIPPED';
+  $('#root').innerHTML=`
+    ${shipped?'<div class="okbox">🚚 จัดส่งแล้ว — ลูกค้าเห็นเลขขนส่ง + รูปแล้ว (แก้ไขได้)</div>':''}
+    <div class="card">
+      <div class="bill-no">🧾 ${esc(billNoOf(d))}</div>
+      <div class="ro" style="margin-top:10px">
+        <div><span class="k">ผู้รับ</span> ${esc(c.name||a.recipient||'-')}</div>
+        <div><span class="k">เบอร์โทร</span> ${esc(c.phone||a.phone||'-')}</div>
+        <div><span class="k">ที่อยู่</span> ${esc(addrText)}</div>
+        <div><span class="k">การจัดส่ง</span> ${esc(d.deliveryCarrier||d.deliveryType||'-')}</div>
+      </div>
+    </div>
+    <div class="card">
+      <label>🚚 เลขขนส่งไทย (Tracking No)</label>
+      <input type="text" id="thTn" placeholder="เช่น TH123456789" value="${esc(d.thTrackingNo||'')}"/>
+      <label>📷 รูปหลักฐานการจัดส่ง (ลูกค้าจะเห็น)</label>
+      <div class="up" id="upBox">
+        <input type="file" id="photoFile" accept="image/*" style="display:none"/>
+        <button class="btn-y" type="button" id="btnPick">📎 ${photoData?'เปลี่ยนรูป':'แนบรูป'}</button>
+        <div id="photoPrev">${photoData?`<img src="${esc(photoData)}"/>`:''}</div>
+      </div>
+    </div>`;
+  $('#btnPick').addEventListener('click',()=>$('#photoFile').click());
+  $('#photoFile').addEventListener('change',onPick);
+  $('#actions').style.display='';
+}
+
+function onPick(){
+  const f=$('#photoFile').files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ const img=new Image(); img.onload=()=>{
+    const max=1000; let{width:w,height:h}=img; if(w>max){h=Math.round(h*max/w);w=max;}
+    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    cv.getContext('2d').drawImage(img,0,0,w,h);
+    photoData=cv.toDataURL('image/jpeg',0.8);
+    $('#photoPrev').innerHTML=`<img src="${photoData}"/>`;
+    $('#btnPick').textContent='📎 เปลี่ยนรูป';
+  }; img.src=rd.result; };
+  rd.readAsDataURL(f);
+}
+
+async function save(){
+  const tn=$('#thTn').value.trim();
+  if(!tn){ alert('⚠️ กรุณาใส่เลขขนส่งไทยก่อน'); return; }
+  const b=$('#btnSave'); b.disabled=true; b.textContent='กำลังบันทึก…';
+  try{
+    const r=await fetch(`/api/orders/update?no=${encodeURIComponent(no)}`,{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({ thTrackingNo:tn, shipPhoto:photoData, billStatus:'SHIPPED' }),
+    });
+    const d=await r.json(); if(!d.ok) throw new Error(d.error||'บันทึกไม่สำเร็จ');
+    alert('✅ บันทึกแล้ว — ออเดอร์ไปอยู่ "จัดส่งแล้ว" ลูกค้าเห็นเลขขนส่ง + รูป');
+    load();
+  }catch(e){ alert('❌ '+e.message); b.disabled=false; b.textContent='✅ บันทึก & แจ้งลูกค้า "จัดส่งแล้ว"'; }
+}
+
+load();
+</script>
+</body>
+</html>

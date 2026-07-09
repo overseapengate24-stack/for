@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>คำนวณค่าส่ง · Oversea PenGate</title>
+<link rel="icon" href="/logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,600;1,700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;
+  --brand-100:#E7DBC0;--brand-50:#F6F0E1;
+  --ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;
+  --bg:#FAF6EE;--surface:#FFFFFF;--border:#ECE2CE;
+  --shadow:0 8px 32px rgba(124,103,57,.13);--shadow-sm:0 2px 10px rgba(124,103,57,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:linear-gradient(180deg,var(--bg),var(--brand-50));color:var(--ink);line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,249,244,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 24px;height:64px}
+.logo{display:flex;align-items:center;gap:7px}
+.logo .logo-img{width:46px;height:46px;display:block;flex-shrink:0;background:url('/logo.png') no-repeat;background-size:76px auto;background-position:50% 27%}
+.logo .wordmark{display:flex;flex-direction:column;line-height:1}
+.logo .wordmark b{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:17px;letter-spacing:3px;color:var(--brand-600)}
+.logo .wordmark small{font-size:8.5px;font-weight:400;color:var(--brand);letter-spacing:5px;margin-top:3px}
+.topbar .spacer{flex:1}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:14px;color:var(--ink-soft);
+  padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;background:#fff;transition:.15s all}
+.back-btn:hover{border-color:var(--brand);color:var(--brand-600)}
+
+.wrap{max-width:640px;margin:0 auto;padding:48px 20px 60px}
+.sec-head{text-align:center;margin-bottom:28px}
+.sec-head .kicker{display:inline-block;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--brand-600);
+  background:var(--brand-50);border:1px solid var(--brand-100);border-radius:999px;padding:5px 16px;margin-bottom:14px}
+.sec-head h2{font-family:'Playfair Display',serif;font-weight:800;font-size:34px;color:var(--ink);margin-bottom:10px}
+.sec-head p{font-size:15px;color:var(--ink-soft);max-width:460px;margin:0 auto}
+
+.btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;border:0;cursor:pointer;
+  font-family:inherit;font-weight:600;font-size:15px;padding:14px 22px;border-radius:999px;transition:.15s all;line-height:1}
+.btn-primary{background:var(--brand-600);color:#fff;box-shadow:0 6px 18px rgba(124,103,57,.28)}
+.btn-primary:hover{background:var(--brand-700)}
+
+.calc-card{background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:26px}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.calc-field label,.calc-dim-label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px}
+.calc-card input,.calc-card select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-family:inherit;font-size:15px;color:var(--ink);background:#fff;outline:none;transition:.15s border-color}
+.calc-card input:focus,.calc-card select:focus{border-color:var(--brand)}
+.calc-dim-label{margin-top:2px}
+.calc-dims{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.calc-dims input{text-align:center}
+.calc-dims span{color:var(--ink-soft);font-weight:700}
+.calc-result{display:none;margin-top:18px;text-align:center;background:var(--brand-50);border:1.5px dashed var(--brand-100);border-radius:16px;padding:18px}
+.calc-result.show{display:block}
+.calc-result .lbl{font-size:13px;color:var(--ink-soft);margin-bottom:6px}
+.calc-result .big{font-family:'Playfair Display',serif;font-weight:800;font-size:38px;color:var(--brand-700);line-height:1}
+.calc-result .det{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.7}
+.calc-result .cta{display:inline-block;margin-top:12px;color:var(--brand-600);font-weight:700;font-size:14px}
+.calc-rates{font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:14px;opacity:.85}
+@media(max-width:520px){.calc-grid{grid-template-columns:1fr}.sec-head h2{font-size:27px}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="/index.html">
+    <span class="logo-img" role="img" aria-label="Oversea PenGate"></span>
+    <span class="wordmark"><b>OVERSEA</b><small>pengate</small></span>
+  </a>
+  <div class="spacer"></div>
+  <a class="back-btn" href="/index.html">← กลับหน้าหลัก</a>
+</header>
+
+<div class="wrap">
+  <div class="sec-head">
+    <div class="kicker">คำนวณค่าส่ง</div>
+    <h2>ประเมินค่าขนส่งเบื้องต้น</h2>
+    <p>ใส่น้ำหนักและขนาดกล่อง ระบบจะประเมินค่าขนส่งจากจีนให้ทันที — ราคาโดยประมาณเพื่อช่วยตัดสินใจ</p>
+  </div>
+
+  <div class="calc-card">
+    <div class="calc-grid">
+      <div class="calc-field">
+        <label>น้ำหนักรวม (กก.)</label>
+        <input id="cWeight" type="number" min="0" step="0.1" placeholder="เช่น 5"/>
+      </div>
+      <div class="calc-field">
+        <label>ขนส่งโดย</label>
+        <select id="cMode">
+          <option value="truck">🚚 ทางรถ (เร็วกว่า)</option>
+          <option value="sea">🚢 ทางเรือ (ถูกกว่า)</option>
+        </select>
+      </div>
+    </div>
+    <label class="calc-dim-label">ขนาดกล่อง (ซม.) — กว้าง × ยาว × สูง <span style="font-weight:400;color:var(--ink-soft)">(ถ้าทราบ)</span></label>
+    <div class="calc-dims">
+      <input id="cW" type="number" min="0" placeholder="กว้าง"/>
+      <span>×</span>
+      <input id="cL" type="number" min="0" placeholder="ยาว"/>
+      <span>×</span>
+      <input id="cH" type="number" min="0" placeholder="สูง"/>
+    </div>
+    <button class="btn btn-primary" id="calcBtn" type="button" style="width:100%">🧮 คำนวณค่าส่ง</button>
+    <div class="calc-result" id="calcResult"></div>
+    <div class="calc-rates" id="calcRates"></div>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+
+/* ============================================================
+   เรตค่าขนส่ง — แก้ "เรตจริง" ได้ที่นี่
+   kg = บาท/กิโลกรัม | cbm = บาท/คิว (ลูกบาศก์เมตร)
+   ระบบเทียบค่าตามกิโล vs ค่าตามคิว แล้วคิดอันที่มากกว่า
+   ============================================================ */
+const SHIP_RATES = {
+  truck: { kg: 45, cbm: 7500, label: 'ทางรถ',  days: '5–8 วัน'   },
+  sea:   { kg: 28, cbm: 4800, label: 'ทางเรือ', days: '12–18 วัน' },
+};
+const MIN_CHARGE = 100; // ค่าขนส่งขั้นต่ำ (บาท)
+
+function calcShipping(){
+  const w  = parseFloat($('#cWeight').value) || 0;
+  const cw = parseFloat($('#cW').value) || 0;
+  const cl = parseFloat($('#cL').value) || 0;
+  const ch = parseFloat($('#cH').value) || 0;
+  const rate = SHIP_RATES[$('#cMode').value] || SHIP_RATES.truck;
+  const cbm  = (cw * cl * ch) / 1000000;
+  const res  = $('#calcResult');
+
+  if (w <= 0 && cbm <= 0){
+    res.className = 'calc-result show';
+    res.innerHTML = `<div class="lbl" style="color:var(--brand-700)">กรุณาใส่น้ำหนัก หรือขนาดกล่องอย่างน้อย 1 อย่าง</div>`;
+    return;
+  }
+
+  const byKg  = w * rate.kg;
+  const byCbm = cbm * rate.cbm;
+  let price   = Math.round(Math.max(byKg, byCbm, MIN_CHARGE));
+  const basis = byCbm > byKg ? 'ปริมาตร (คิว)' : 'น้ำหนัก';
+
+  res.className = 'calc-result show';
+  res.innerHTML = `
+    <div class="lbl">ค่าขนส่ง${rate.label}โดยประมาณ</div>
+    <div class="big">฿${price.toLocaleString()}</div>
+    <div class="det">
+      คิดตาม: <b>${basis}</b> · ระยะเวลาขนส่งโดยประมาณ ${rate.days}<br>
+      ${w>0 ? `น้ำหนัก ${w} กก. = ฿${Math.round(byKg).toLocaleString()}` : ''}${(w>0&&cbm>0)?' · ':''}${cbm>0 ? `ปริมาตร ${cbm.toFixed(3)} คิว = ฿${Math.round(byCbm).toLocaleString()}` : ''}
+    </div>
+    <a class="cta" href="/index.html#order">→ พร้อมแล้ว เริ่มสั่งซื้อเลย</a>`;
+}
+
+$('#calcBtn').addEventListener('click', calcShipping);
+$('#calcRates').textContent = '* ราคาโดยประมาณ ไม่รวมค่าสินค้าและค่าบริการสั่งซื้อ — ราคาจริงทีมงานจะแจ้งอีกครั้งหลังตรวจสอบ';
+</script>
+</body>
+</html>

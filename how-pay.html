@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>💴 ฝากจ่ายเงิน · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--bg:#FAF6EE;--border:#ECE2CE}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.7}
+.top{background:linear-gradient(90deg,#B89865,#9C8654);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.top h1{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex:1}
+.top a{color:#fff;font-size:13px;text-decoration:none;background:rgba(255,255,255,.2);padding:7px 14px;border-radius:999px;font-weight:600}
+.wrap{max-width:1180px;margin:0 auto;padding:30px 16px 60px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;margin-bottom:18px}
+.mainGrid{display:grid;grid-template-columns:1fr 350px;gap:20px;align-items:start}
+.colMain,.colSide{display:flex;flex-direction:column;gap:18px}
+@media(max-width:880px){.cards3{grid-template-columns:1fr}.payGrid{grid-template-columns:1fr!important}.mainGrid{grid-template-columns:1fr}}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:22px;box-shadow:0 4px 16px rgba(124,103,57,.08)}
+.sec-t{font-family:'Playfair Display',serif;font-size:20px;color:var(--brand-700);margin-bottom:14px}
+.step{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--brand-600);color:#fff;display:grid;place-items:center;font-weight:700;flex-shrink:0;font-size:14px}
+.step .tx b{color:var(--brand-700);font-size:14.5px}
+.step .tx div{font-size:13px;color:var(--ink-soft);margin-top:2px}
+.rate-box{background:linear-gradient(135deg,#FFF7E0,#FFEFC2);border:1.5px solid #E8C97A;border-radius:14px;padding:18px;text-align:center}
+.rate-box .lbl{font-size:13px;color:#8B6F2A;font-weight:600}
+.rate-box .v{font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:700;color:#7C5B12;line-height:1.1;margin:8px 0 4px}
+.rate-box .sub{font-size:12px;color:#A88846}
+.calc{background:var(--brand-50);border:1.5px solid var(--brand-100);border-radius:12px;padding:14px;margin-top:12px}
+.calc-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.calc-row label{font-size:13px;color:var(--ink-soft);min-width:72px;flex-shrink:0}
+.calc input{flex:1;min-width:0;box-sizing:border-box;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;text-align:right;outline:none}
+.calc input:focus{border-color:var(--brand)}
+.calc .result{background:#fff;border-radius:10px;padding:12px;margin-top:8px;text-align:center;border:1.5px solid var(--brand)}
+.calc .result .k{font-size:12.5px;color:var(--ink-soft)}
+.calc .result .v{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;color:var(--brand-700);line-height:1}
+.note{background:#fffbeb;border:1px solid #fde68a;color:#854d0e;border-radius:10px;padding:12px 14px;font-size:12.5px;margin-top:12px;line-height:1.6}
+.cta{display:inline-block;background:var(--brand-600);color:#fff;padding:11px 22px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:14px}
+.cta:hover{background:var(--brand-700)}
+</style>
+</head>
+<body>
+<div class="top">
+  <a href="/">← หน้าหลัก</a>
+  <h1>💴 ฝากจ่ายเงิน</h1>
+</div>
+<div class="wrap">
+
+ <div class="mainGrid">
+
+ <!-- ซ้าย: ฟอร์ม + รายการ (โซนทำงาน) -->
+ <div class="colMain">
+
+ <!-- ฟอร์มวางลิงก์ → สร้างออเดอร์ รอเช็คราคา -->
+ <div class="card" id="order-form" style="scroll-margin-top:70px">
+   <div class="sec-t">🛒 ฝากสั่งสินค้า — วางลิงก์</div>
+   <div id="opLogin" style="display:none;text-align:center;padding:20px;color:var(--ink-soft)">กรุณา <a href="/" style="color:var(--brand-700);text-decoration:underline">เข้าสู่ระบบ</a> ก่อนสั่งซื้อ</div>
+   <form id="opForm">
+     <div style="margin-bottom:14px">
+       <label style="font-size:13px;color:var(--ink-soft);font-weight:600">ลิงก์สินค้า <span style="color:#e11">*</span></label>
+       <input id="opUrl" type="url" placeholder="วางลิงก์สินค้า" style="width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;margin-top:4px"/>
+     </div>
+     <div style="margin-bottom:14px">
+       <label style="font-size:13px;color:var(--ink-soft);font-weight:600">หมายเหตุเพิ่มเติม</label>
+       <textarea id="opNote" rows="3" style="width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;margin-top:4px;resize:vertical"></textarea>
+     </div>
+     <button type="submit" id="opSubmit" class="cta" style="width:100%;text-align:center;border:none;cursor:pointer;font-size:15px;margin-top:0">🛒 สั่งซื้อ — รอทีมงานแจ้งราคา</button>
+   </form>
+ </div>
+
+ <!-- รายการออเดอร์ฝากจ่ายเงิน (OVE) ของลูกค้า -->
+ <div class="card">
+   <div class="sec-t" style="font-size:18px">📋 รายการฝากจ่ายเงิน</div>
+   <div id="oveList" style="display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto">
+     <div style="color:var(--ink-soft);font-size:13px;text-align:center;padding:18px 0">กำลังโหลด…</div>
+   </div>
+ </div>
+
+ </div><!-- /colMain -->
+
+ <!-- ขวา: เรท + ขั้นตอน + เงื่อนไข (โซนข้อมูล) -->
+ <div class="colSide">
+
+  <div class="card">
+    <div class="sec-t">💱 เรทแลกเงินวันนี้</div>
+    <div class="rate-box">
+      <div class="lbl">1 หยวน (¥) =</div>
+      <div class="v" id="rateNow">— บาท</div>
+      <div class="sub">(เรทอัปเดตจากแอดมิน)</div>
+    </div>
+    <div class="calc">
+      <div class="calc-row"><label>ราคาสินค้า</label><input type="number" id="rmbIn" placeholder="0" min="0" step="0.01"/><span style="font-weight:600">¥</span></div>
+      <div class="result">
+        <div class="k">เท่ากับเงินไทย</div>
+        <div class="v" id="thbOut">฿0.00</div>
+      </div>
+    </div>
+    <div class="note">💡 เรทอาจเปลี่ยนได้ทุกวัน — ราคาสุดท้ายคิดตามเรทตอนแอดมินแจ้งราคา</div>
+  </div>
+
+  <div class="card">
+    <div class="sec-t">📋 ขั้นตอนฝากจ่ายเงิน</div>
+    <div class="step"><div class="n">1</div><div class="tx"><b>ส่งลิงก์สินค้า</b><div>วางลิงก์ Taobao / Tmall / 1688 ที่อยากซื้อ</div></div></div>
+    <div class="step"><div class="n">2</div><div class="tx"><b>ทีมแจ้งราคา + เรท</b><div>คิดเป็นเงินบาทตามเรทวันนี้ ส่งบิลทางอีเมล</div></div></div>
+    <div class="step"><div class="n">3</div><div class="tx"><b>โอนเงินบาท + แนบสลิป</b><div>ภายใน 1 วัน ถ้าเกินบิลถูกยกเลิกอัตโนมัติ</div></div></div>
+    <div class="step"><div class="n">4</div><div class="tx"><b>เราจ่ายเงินหยวนให้ร้านจีน</b><div>แนบสลิปการจ่ายให้ลูกค้าเป็นหลักฐาน</div></div></div>
+    <div class="step"><div class="n">5</div><div class="tx"><b>แจ้งชำระเสร็จสิ้น</b><div>รอของเข้าโกดังจีน → ส่งมาไทย</div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-t">⚠️ เงื่อนไขสำคัญ</div>
+    <div class="step"><div class="n">⏰</div><div class="tx"><b>ชำระภายใน 1 วัน</b><div>ถ้าเกินกำหนดออเดอร์ถูกยกเลิกอัตโนมัติ</div></div></div>
+    <div class="step"><div class="n">📎</div><div class="tx"><b>แนบสลิปทุกครั้ง</b><div>เพื่อให้ทีมยืนยันยอดและจ่ายให้ร้านจีน</div></div></div>
+    <div class="step"><div class="n">🧾</div><div class="tx"><b>เก็บหลักฐานทุกขั้น</b><div>ลูกค้าจะได้รับสลิปที่เราจ่ายร้านจีนคืน</div></div></div>
+  </div>
+
+ </div><!-- /colSide -->
+
+ </div><!-- /mainGrid -->
+
+</div>
+
+<!-- Modal ชำระเงิน + แนบสลิป -->
+<div id="payModal" style="display:none;position:fixed;inset:0;background:rgba(60,42,14,.45);z-index:100;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;max-width:440px;width:100%;max-height:92vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--brand-700)">💳 ชำระเงิน</div>
+      <button onclick="closePay()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink-soft)">✕</button>
+    </div>
+    <div style="background:var(--brand-50);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <span style="color:var(--ink-soft);font-size:13px">ออเดอร์ <b id="payNo" style="color:var(--brand-700)"></b></span>
+      <span style="font-size:20px;font-weight:700;color:var(--brand-700)" id="payAmt">฿0</span>
+    </div>
+    <div style="font-size:13px;color:var(--ink-soft);font-weight:600;margin-bottom:6px">โอนเข้าบัญชีนี้</div>
+    <div style="border:1.5px solid #3d8a5a;background:#f0fdf4;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <img src="/dpa_bank_kbank@2x.png" alt="KBANK" style="width:42px;height:42px;border-radius:9px;background:#fff;padding:4px;object-fit:contain" onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-weight:700;color:var(--brand-700)">ธนาคารกสิกรไทย (KBANK)</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:700;letter-spacing:1px">106-3-77638-2</div>
+        <div style="font-size:12px;color:var(--ink-soft)">ชื่อบัญชี : บจก.โอเวอร์ซี เพนเกต</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--ink-soft);font-weight:600;margin-bottom:6px">แนบสลิปการโอน <span style="color:#e11">*</span></div>
+    <input type="file" id="slipFile" accept="image/*" style="display:none"/>
+    <button type="button" onclick="document.getElementById('slipFile').click()" style="width:100%;background:var(--brand-50);border:1.5px dashed var(--brand-100);color:var(--brand-700);padding:14px;border-radius:10px;font-weight:600;cursor:pointer;font-family:inherit">📎 เลือกรูปสลิป</button>
+    <div id="slipPreview" style="margin-top:10px;text-align:center"></div>
+    <input type="hidden" id="slipData"/>
+    <button type="button" id="slipSend" onclick="submitSlip()" class="cta" style="width:100%;text-align:center;border:none;cursor:pointer;font-size:15px;margin-top:14px;background:#16a34a">📤 ส่งสลิป — รอแอดมินตรวจสอบ</button>
+  </div>
+</div>
+
+<script>
+fetch('/api/orders?rate=1').then(r=>r.json()).then(d=>{
+  var rate = (d&&d.ok&&(d.payRate||d.rate)) ? Number(d.payRate||d.rate) : 5.2;
+  document.getElementById('rateNow').textContent = rate.toFixed(2) + ' บาท';
+  var rmb=document.getElementById('rmbIn'), out=document.getElementById('thbOut');
+  function calc(){ var n=Number(rmb.value)||0; out.textContent='฿'+(n*rate).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  rmb.addEventListener('input',calc); calc();
+}).catch(()=>{ document.getElementById('rateNow').textContent='5.20 บาท'; });
+
+/* ── ฟอร์มวางลิงก์ → สร้างออเดอร์ รอเช็คราคา ── */
+var opMe=null; try{ opMe=JSON.parse(localStorage.getItem('opg_user')||'null'); }catch(e){}
+if(!opMe||!opMe.email){ document.getElementById('opLogin').style.display='block'; document.getElementById('opForm').style.display='none'; }
+
+/* ── โหลดรายการ OVE ของลูกค้า ── */
+var OVE_ST={ NEW:['รอแจ้งราคา','#9C8654'], QUOTED:['รอชำระเงิน','#3d8a5a'], PAID:['ฝากจ่ายเงินสำเร็จ','#15803d'], DONE:['สำเร็จ','#15803d'], CANCELLED:['ยกเลิก','#b91c1c'] };
+async function loadOve(){
+  var box=document.getElementById('oveList');
+  if(!opMe||!opMe.email){ box.innerHTML='<div style="color:var(--ink-soft);font-size:13px;text-align:center;padding:18px 0">เข้าสู่ระบบเพื่อดูรายการ</div>'; return; }
+  try{
+    var r=await fetch('/api/orders/user?email='+encodeURIComponent(opMe.email.toLowerCase()));
+    var d=await r.json();
+    var list=((d&&d.orders)||[]).filter(function(o){ return o.source==='pay' || (o.orderNo||'').indexOf('OVE')===0; });
+    if(!list.length){ box.innerHTML='<div style="color:var(--ink-soft);font-size:13px;text-align:center;padding:18px 0">ยังไม่มีรายการฝากจ่ายเงิน</div>'; return; }
+    box.innerHTML=list.map(function(o){
+      var st=OVE_ST[o.status]||[o.statusText||o.status,'#9C8654'];
+      /* รอชำระเงิน + แนบสลิปแล้ว → รอแอดมินตรวจสอบ */
+      var canPay = (o.status==='QUOTED' && !o.payReview);
+      if(o.status==='QUOTED' && o.payReview) st=['รอแอดมินตรวจสอบ','#d97706'];
+      var item=(o.items&&o.items[0])||{};
+      var when=o.createdAt?new Date(o.createdAt).toLocaleDateString('th-TH',{day:'2-digit',month:'short'}):'';
+      return '<div '+(canPay?('onclick="openPay(\''+o.orderNo+'\','+(Number(o.total)||0)+')" style="cursor:pointer;border:1.5px solid #3d8a5a;background:#f0fdf4;'):'style="border:1.5px solid var(--border);')+'border-radius:11px;padding:11px 13px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+        +'<span style="font-family:\'IBM Plex Mono\',monospace;font-weight:700;color:var(--brand-700);font-size:13.5px">'+o.orderNo+'</span>'
+        +'<span style="background:'+st[1]+';color:#fff;border-radius:7px;padding:2px 9px;font-size:11px;font-weight:700">'+st[0]+'</span></div>'
+        +'<div style="font-size:12px;color:var(--ink-soft);margin-top:5px;word-break:break-all">'+(item.url?('🔗 '+item.url.slice(0,46)+(item.url.length>46?'…':'')):'')+'</div>'
+        +(o.total?'<div style="font-size:13px;font-weight:700;color:var(--brand-700);margin-top:4px">฿'+Number(o.total).toLocaleString()+'</div>':'')
+        +(canPay?'<div style="font-size:12px;color:#3d8a5a;font-weight:700;margin-top:5px">👉 แตะเพื่อชำระเงิน + แนบสลิป</div>':'')
+        +(o.adminSlip?'<a href="'+o.adminSlip+'" target="_blank" onclick="event.stopPropagation()" style="display:inline-block;font-size:12px;color:#15803d;font-weight:700;margin-top:5px;text-decoration:underline">📎 ดูสลิปที่เราจ่ายร้านจีน</a>':'')
+        +'<div style="font-size:11px;color:var(--ink-xsoft);margin-top:3px">'+when+'</div></div>';
+    }).join('');
+  }catch(e){ box.innerHTML='<div style="color:#b91c1c;font-size:13px;text-align:center;padding:18px 0">โหลดไม่สำเร็จ</div>'; }
+}
+loadOve();
+
+/* ── ชำระเงิน + แนบสลิป ── */
+var payOrderNo='';
+function openPay(no, amt){
+  payOrderNo=no;
+  document.getElementById('payNo').textContent=no;
+  document.getElementById('payAmt').textContent='฿'+Number(amt||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('slipData').value='';
+  document.getElementById('slipPreview').innerHTML='';
+  document.getElementById('payModal').style.display='flex';
+}
+function closePay(){ document.getElementById('payModal').style.display='none'; }
+document.getElementById('slipFile').addEventListener('change',function(){
+  var f=this.files[0]; if(!f) return;
+  var rd=new FileReader(); rd.onload=function(){ var img=new Image(); img.onload=function(){
+    var max=1000,w=img.width,h=img.height; if(w>max){h=Math.round(h*max/w);w=max;}
+    var cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+    var data=cv.toDataURL('image/jpeg',0.8);
+    document.getElementById('slipData').value=data;
+    document.getElementById('slipPreview').innerHTML='<img src="'+data+'" style="max-width:100%;max-height:240px;border-radius:10px;border:1px solid var(--border)"/>';
+  }; img.src=rd.result; }; rd.readAsDataURL(f);
+});
+async function submitSlip(){
+  if(!document.getElementById('slipData').value){ alert('กรุณาแนบรูปสลิปก่อน'); return; }
+  if(!opMe||!opMe.email){ alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+  var btn=document.getElementById('slipSend'); btn.disabled=true; var ot=btn.textContent; btn.textContent='กำลังส่ง…';
+  try{
+    var r=await fetch('/api/orders/bill-action',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'paySlip', orderNo:payOrderNo, email:opMe.email.toLowerCase(), slip:document.getElementById('slipData').value })});
+    var d=await r.json(); if(!d.ok) throw new Error(d.error||'ส่งไม่สำเร็จ');
+    alert('✅ ส่งสลิปแล้ว — รอแอดมินตรวจสอบการชำระเงินครับ');
+    closePay(); loadOve();
+  }catch(err){ alert('❌ '+err.message); }
+  finally{ btn.disabled=false; btn.textContent=ot; }
+}
+document.getElementById('opForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  if(!opMe||!opMe.email){ alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+  var url=document.getElementById('opUrl').value.trim();
+  if(!url){ alert('กรุณาวางลิงก์สินค้า'); return; }
+  if(/[฀-๿]/.test(url) || !(/^https?:\/\//i.test(url) || /[a-z0-9-]+\.[a-z]{2,}/i.test(url))){
+    alert('กรุณาใส่ลิงก์สินค้าจริงๆ (Taobao / Tmall / 1688 — ภาษาอังกฤษหรือลิงก์เท่านั้น)'); return;
+  }
+  var btn=document.getElementById('opSubmit'); btn.disabled=true; var ot=btn.textContent; btn.textContent='กำลังส่ง…';
+  var note=document.getElementById('opNote').value.trim();
+  var payload={
+    source:'pay',
+    customer:{ name:opMe.name||'', email:opMe.email.toLowerCase(), lineId:'' },
+    items:[{ url:url, name:(note.split('\n')[0]||'สินค้าจากลิงก์').slice(0,200), qty:1, note:note }],
+    note:note
+  };
+  try{
+    var r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    var d=await r.json(); if(!d.ok) throw new Error(d.error||'ส่งไม่สำเร็จ');
+    alert('✅ สั่งซื้อสำเร็จ — เลขที่ '+d.orderNo+'\nสถานะ: รอทีมงานแจ้งราคา\nทีมงานจะแจ้งราคา + เรท ทางอีเมลครับ');
+    document.getElementById('opForm').reset();
+    loadOve();
+  }catch(err){ alert('❌ '+err.message); }
+  finally{ btn.disabled=false; btn.textContent=ot; }
+});
+</script>
+</body>
+</html>

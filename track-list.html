@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ติดตามสถานะสินค้า · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;--bg:#FAF6EE;--surface:#FFFFFF;--border:#ECE2CE;--border-soft:#F0E9D8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#3C2A0E;color:#cfd8de;display:flex;flex-direction:column;z-index:60;overflow-y:auto;transition:transform .25s}
+.sb-prof{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-prof img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--brand)}
+.sb-prof .nm{font-weight:600;font-size:14px;color:#fff;text-align:center}
+.sb-prof .cr{font-size:12px;color:#F5B301;font-weight:600}
+.sb-nav{padding:10px 0;flex:1}
+.sb-nav a{display:flex;align-items:center;gap:11px;padding:12px 20px;font-size:14px;color:#cfd8de;border-left:3px solid transparent}
+.sb-nav a:hover{background:rgba(255,255,255,.05);color:#fff}
+.sb-nav a.active{background:rgba(0,0,0,.25);color:#fff;border-left-color:var(--brand);font-weight:600}
+.sb-nav a.sub{padding-left:46px;font-size:13px;color:#9aa6ae}
+.sb-nav a.sub.active{color:#fff}
+.sb-nav .ic{width:18px;text-align:center}
+.main{margin-left:240px}
+.ytop{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#B89865,#9C8654);padding:10px 18px;position:sticky;top:0;z-index:40}
+.ytop h1{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:#fff;flex:1}
+.crumbs{font-size:12.5px;color:rgba(255,255,255,.85)}
+.wrap{max-width:1400px;margin:0 auto;padding:24px 16px 70px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input{flex:1;min-width:220px;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;outline:none}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(124,103,57,.07)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{background:var(--brand-50);color:var(--ink-soft);font-weight:600;padding:11px 8px;text-align:center;white-space:nowrap}
+tbody td{padding:11px 8px;border-bottom:1px solid var(--border-soft);text-align:center;white-space:nowrap}
+tbody tr:hover{background:var(--brand-50)}
+.mono{font-family:'IBM Plex Mono',monospace}
+.tk{color:var(--brand-700);font-weight:700;text-decoration:underline;cursor:pointer}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.foot{padding:12px 16px;background:#fafafa;font-size:12.5px;color:var(--ink-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.empty{text-align:center;padding:40px;color:var(--ink-soft);font-size:13.5px}
+#navToggle{display:none;position:fixed;top:12px;left:12px;z-index:70;background:#3C2A0E;color:#fff;border:0;border-radius:8px;width:42px;height:42px;font-size:20px;cursor:pointer}
+.sb-bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+@media(max-width:760px){.main{margin-left:0;padding-top:54px}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}#navToggle{display:block}.sidebar.open ~ .sb-bd{display:block}.wrap{padding:16px 8px 60px}table{font-size:11px}}
+</style>
+</head>
+<body>
+<button id="navToggle" aria-label="เมนู">☰</button>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-prof">
+    <img id="sbPic" src="/logo.png?v=2" alt=""/>
+    <div class="nm" id="sbName">ผู้ใช้</div>
+    <div class="cr" id="sbCredit">💰 0.00 ฿</div>
+  </div>
+  <nav class="sb-nav">
+    <a href="/"><span class="ic">🏠</span> หน้าหลัก</a>
+    <a href="/topup.html"><span class="ic">💳</span> การเงิน (เติมเงิน)</a>
+    <a href="/orders.html"><span class="ic">📄</span> รายการสั่งซื้อสินค้าจีน</a>
+    <a href="/bills.html"><span class="ic">🧾</span> รายการบิลค่าขนส่ง</a>
+    <a href="/track-list.html" class="active"><span class="ic">🚚</span> ติดตามสถานะสินค้า</a>
+    <a href="/track-list.html" class="sub active">▸ ติดตามสถานะสินค้า</a>
+    <a href="/track.html" class="sub">▸ ค้นหาเลขพัสดุ</a>
+    <a href="/reviews.html"><span class="ic">⭐</span> รีวิว</a>
+  </nav>
+</aside>
+<div class="sb-bd" id="sbBd"></div>
+
+<main class="main">
+  <div class="ytop">
+    <h1>🚚 ติดตามสถานะสินค้า</h1>
+    <div class="crumbs">🏠 หน้าหลัก › ติดตามสถานะสินค้า</div>
+  </div>
+  <div class="wrap">
+    <div class="toolbar">
+      <input type="text" id="q" placeholder="ค้นหาเลขพัสดุ เช่น เลข Tracking, เลข Shipping"/>
+    </div>
+    <div class="card">
+      <div style="overflow-x:auto"><table>
+        <thead><tr>
+          <th>Tracking</th><th>Bill</th><th>วันที่เข้าโกดังจีน</th><th>ชื่อสินค้า</th><th>ขนส่งทาง</th>
+          <th>กล่อง</th><th>ชิ้น</th><th>น้ำหนัก(KG)</th><th>ยาว</th><th>กว้าง</th><th>สูง</th><th>เลขขนส่งไทย</th><th>สถานะ</th>
+        </tr></thead>
+        <tbody id="body"><tr><td colspan="13" class="empty">กำลังโหลด…</td></tr></tbody>
+      </table></div>
+      <div class="foot"><span id="count"></span></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmtDate(iso){if(!iso)return '-';const d=new Date(iso);return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+function billNoOf(o){const d=new Date(o.updatedAt||o.createdAt||Date.now());const code=`${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;const seq=(o.orderNo||'').replace(/\D/g,'').slice(-4)||'0000';return `BL${code}-${seq}`;}
+const CN=['📤 ร้านส่งของ','🏬 เข้าโกดังจีน','🚛 ส่งมาไทย','🏭 ถึงโกดังไทย'];
+function statusPill(o){
+  if(o.billStatus==='DELIVERED') return ['🎉 จัดส่งเรียบร้อย','#16a34a','#dcfce7'];
+  if(o.billStatus==='SHIPPED')   return ['🚚 จัดส่งแล้ว','#0369a1','#e0f2fe'];
+  if(['PAID','SLIP','AWAIT_PAY','REVIEW'].includes(o.billStatus)) return ['🧾 อยู่ในขั้นบิล','#7c3aed','#f3e8ff'];
+  const s=Number.isInteger(o.cnStage)?o.cnStage:-1;
+  if(s>=0) return [CN[s],'#b45309','#fffbeb'];
+  return ['⏳ รอข้อมูล','#7C715B','#f3f4f6'];
+}
+const me=JSON.parse(localStorage.getItem('opg_user')||'null');
+if(me){ if(me.picture)$('#sbPic').src=me.picture; $('#sbName').textContent=me.name||me.email;
+  fetch(`/api/topup?email=${encodeURIComponent(me.email.toLowerCase())}`).then(r=>r.json()).then(d=>{ $('#sbCredit').textContent='💰 '+fmt(d.credit||0)+' ฿';}).catch(()=>{}); }
+$('#navToggle').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+$('#sbBd').addEventListener('click',()=>$('#sidebar').classList.remove('open'));
+
+let rows=[];
+async function load(){
+  if(!me||!me.email){ $('#body').innerHTML='<tr><td colspan="13" class="empty">กรุณาเข้าสู่ระบบก่อน</td></tr>'; return; }
+  let orders=[];
+  try{ const r=await fetch(`/api/orders/user?email=${encodeURIComponent(me.email.toLowerCase())}`); const d=await r.json(); orders=(d.ok&&d.orders)?d.orders:[];}catch(e){}
+  /* แสดงเฉพาะที่มีเลขแทร็คจีน (มีพัสดุเดินทางแล้ว) */
+  rows = orders.filter(o=>o.trackingNo);
+  render();
+}
+function render(){
+  const q=$('#q').value.trim().toLowerCase();
+  let list=rows.slice();
+  if(q) list=list.filter(o=>((o.trackingNo||'')+' '+(o.thTrackingNo||'')+' '+billNoOf(o)+' '+(o.orderNo||'')).toLowerCase().includes(q));
+  if(!list.length){ $('#body').innerHTML='<tr><td colspan="13" class="empty">ยังไม่มีพัสดุที่กำลังเดินทาง</td></tr>'; $('#count').textContent=''; return; }
+  $('#body').innerHTML=list.map(o=>{
+    const first=(o.items||[])[0]||{};
+    const kg=Number(o.billWeightKg)||((Number(o.weight)||0)/1000);
+    const st=statusPill(o);
+    return `<tr>
+      <td><a class="tk mono" href="track.html?no=${encodeURIComponent(o.orderNo)}">${esc(o.trackingNo)}</a></td>
+      <td class="mono">${esc(billNoOf(o))}</td>
+      <td>${fmtDate(o.cnArrivedAt)}</td>
+      <td>${esc(first.name||'ทั่วไป')}</td>
+      <td>${o.shipMethod==='เรือ'?'🚢 เรือ':'🚚 รถ'}</td>
+      <td>1</td>
+      <td>${(o.items||[]).reduce((s,it)=>s+(Number(it.qty)||1),0)}</td>
+      <td class="mono">${kg?fmt(kg):'-'}</td>
+      <td class="mono">${Number(o.billL)?fmt(o.billL):'-'}</td>
+      <td class="mono">${Number(o.billW)?fmt(o.billW):'-'}</td>
+      <td class="mono">${Number(o.billH)?fmt(o.billH):'-'}</td>
+      <td class="mono">${esc(o.thTrackingNo||'-')}</td>
+      <td><span class="pill" style="color:${st[1]};background:${st[2]}">${st[0]}</span></td>
+    </tr>`;
+  }).join('');
+  $('#count').textContent=`แสดง 1-${list.length} / ทั้งหมด ${list.length} รายการ`;
+}
+$('#q').addEventListener('input',render);
+load();
+</script>
+</body>
+</html>

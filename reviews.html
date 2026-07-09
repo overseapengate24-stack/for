@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>รีวิว & แพ็กเกจจิ้ง · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;
+  --brand-100:#E7DBC0;--brand-50:#F6F0E1;
+  --ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;
+  --bg:#FAF6EE;--surface:#FFFFFF;--border:#ECE2CE;
+  --shadow:0 8px 32px rgba(124,103,57,.13);--shadow-sm:0 2px 10px rgba(124,103,57,.09);
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,249,244,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 20px;height:64px}
+.topbar .logo{width:46px;height:46px;background:url('/logo.png?v=2') no-repeat center/contain;flex-shrink:0}
+.topbar .tt{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;font-size:20px;color:var(--brand-600)}
+.topbar .tt small{display:block;font-style:normal;font-size:9px;letter-spacing:4px;color:var(--ink-soft)}
+.topbar .spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;justify-content:center;border:0;cursor:pointer;
+  font-family:inherit;font-weight:600;font-size:14px;padding:10px 18px;border-radius:999px;transition:.15s all;line-height:1}
+.btn-primary{background:var(--brand-600);color:#fff;box-shadow:0 6px 18px rgba(124,103,57,.25)}
+.btn-primary:hover{background:var(--brand-700)}
+.btn-ghost{background:#fff;color:var(--ink);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--brand);color:var(--brand-600)}
+.btn-sm{padding:7px 14px;font-size:13px}
+.wrap{max-width:1080px;margin:0 auto;padding:26px 18px 70px}
+.head{text-align:center;margin-bottom:26px}
+.head .kick{font-size:12px;letter-spacing:4px;color:var(--brand);font-weight:600;text-transform:uppercase}
+.head h1{font-family:'Playfair Display',serif;font-size:30px;color:var(--ink);margin:6px 0}
+.head p{color:var(--ink-soft);font-size:15px}
+
+/* ADD FORM */
+.add-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;
+  padding:22px;box-shadow:var(--shadow-sm);margin-bottom:30px}
+.add-card h3{font-size:17px;font-weight:700;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px}
+.input,.textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-family:inherit;font-size:14.5px;color:var(--ink);background:#fff;outline:none;transition:.15s border-color}
+.input:focus,.textarea:focus{border-color:var(--brand)}
+.textarea{resize:vertical;min-height:80px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row .field{flex:1 1 200px}
+.stars{display:flex;gap:4px;font-size:26px;cursor:pointer}
+.stars span{color:var(--border);transition:.1s;line-height:1}
+.stars span.on{color:#F5B301}
+.upload{border:1.5px dashed var(--brand-100);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:.15s;color:var(--ink-soft)}
+.upload:hover{border-color:var(--brand);background:var(--brand-50)}
+.upload input{display:none}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;
+  width:20px;height:20px;cursor:pointer;font-size:12px;line-height:1}
+.formMsg{font-size:13.5px;margin-top:6px}
+
+/* GALLERY */
+.gallery{column-count:3;column-gap:16px}
+@media(max-width:820px){.gallery{column-count:2}}
+@media(max-width:520px){.gallery{column-count:1}.head h1{font-size:25px}}
+.rcard{break-inside:avoid;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;
+  overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:16px}
+.rcard img{width:100%;display:block;cursor:zoom-in}
+.rcard .body{padding:14px 16px}
+.rcard .who{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rcard .av{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid var(--border)}
+.rcard .av-ph{display:grid;place-items:center;background:var(--brand-100);color:var(--brand-700);font-weight:700;font-size:16px}
+.rcard .em{font-size:11.5px;color:var(--ink-xsoft);word-break:break-all}
+.rcard .nm{font-weight:700;font-size:14.5px}
+.rcard .rt{color:#F5B301;font-size:14px;letter-spacing:1px}
+.rcard .tx{font-size:14px;color:var(--ink);margin-top:6px;white-space:pre-wrap}
+.rcard .dt{font-size:11.5px;color:var(--ink-xsoft);margin-top:8px}
+.empty{text-align:center;padding:60px 0;color:var(--ink-soft)}
+.spinner{width:24px;height:24px;border:3px solid var(--brand-100);border-top-color:var(--brand);border-radius:50%;
+  animation:spin .7s linear infinite;margin:40px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LIGHTBOX */
+.lb{display:none;position:fixed;inset:0;z-index:200;background:rgba(20,15,8,.9);align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+.lb.open{display:flex}
+.lb img{max-width:100%;max-height:100%;border-radius:8px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1b14;color:#fff;
+  padding:12px 22px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;z-index:9999;transition:.25s all}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="logo" aria-label="หน้าหลัก"></a>
+  <div class="tt">รีวิว<small>OVERSEA PENGATE</small></div>
+  <div class="spacer"></div>
+  <a href="/" class="btn btn-ghost btn-sm">← กลับหน้าหลัก</a>
+</div>
+
+<div class="wrap">
+  <!-- แถบรูปตกแต่ง (รูปงานขนส่งจริง) -->
+  <div id="rvHero" style="border-radius:18px;overflow:hidden;margin-bottom:22px;position:relative;box-shadow:var(--shadow-sm)">
+    <div id="rvHeroStrip" style="display:flex;height:200px">
+      <img src="/5417.jpg?v=1" style="flex:1;min-width:0;height:100%;object-fit:cover"/>
+      <img src="/5418.jpg?v=1" style="flex:1;min-width:0;height:100%;object-fit:cover"/>
+      <img src="/123.jpg?v=1" style="flex:1;min-width:0;height:100%;object-fit:cover"/>
+    </div>
+    <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(60,42,20,.72),rgba(60,42,20,.15));display:flex;flex-direction:column;justify-content:flex-end;padding:20px 22px">
+      <div style="color:#F6E9CC;font-size:11px;letter-spacing:4px;font-weight:600">REAL SHIPMENTS</div>
+      <div style="color:#fff;font-family:'Playfair Display',serif;font-size:24px;font-weight:700">งานขนส่งจริงจากลูกค้า</div>
+    </div>
+  </div>
+
+  <div class="head">
+    <div class="kick">REVIEWS</div>
+    <h1>รีวิวจากลูกค้า</h1>
+    <p>ภาพการแพ็ก-ขนส่งจริงจากลูกค้า แชร์ประสบการณ์ของคุณให้คนอื่นเห็นได้เลย</p>
+  </div>
+
+  <!-- ปุ่มเปิดฟอร์มเพิ่มรีวิว -->
+  <div id="rvOpenWrap" style="text-align:center;margin-bottom:26px">
+    <button class="btn btn-primary" id="rvOpenBtn" type="button">✍️ เพิ่มรีวิว</button>
+  </div>
+
+  <!-- ADD REVIEW (ซ่อนไว้ก่อน) -->
+  <div class="add-card" id="rvAddCard" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <h3 style="margin-bottom:0">✍️ เพิ่มรีวิวของคุณ</h3>
+      <button class="btn btn-ghost btn-sm" id="rvCloseBtn" type="button">✕ ปิด</button>
+    </div>
+    <div style="height:16px"></div>
+    <div class="field"><label>ให้คะแนน</label>
+      <div class="stars" id="rvStars">
+        <span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span>
+      </div>
+    </div>
+    <div class="field"><label>รีวิว / ความคิดเห็น</label>
+      <textarea class="textarea" id="rvText" placeholder="เล่าประสบการณ์การสั่งซื้อ การแพ็ก การจัดส่ง ฯลฯ" maxlength="600"></textarea>
+    </div>
+    <div class="field"><label>รูปภาพ (เพิ่มได้หลายรูป)</label>
+      <label class="upload" for="rvImgInput">📷 แตะเพื่อเลือกรูป (ระบบจะย่อขนาดให้อัตโนมัติ)
+        <input type="file" id="rvImgInput" accept="image/*" multiple/>
+      </label>
+      <div class="thumbs" id="rvThumbs"></div>
+    </div>
+    <button class="btn btn-primary" id="rvSubmit">📨 ส่งรีวิว</button>
+    <span class="formMsg" id="rvMsg"></span>
+  </div>
+
+  <!-- GALLERY -->
+  <div id="rvCount" style="font-weight:700;font-size:16px;margin:4px 0 16px;color:var(--brand-700)"></div>
+  <div id="rvLoading"><div class="spinner"></div></div>
+  <div class="gallery" id="rvGallery"></div>
+  <div class="empty" id="rvEmpty" style="display:none">ยังไม่มีรีวิว — มาเป็นคนแรกกันเลย! 🎉</div>
+</div>
+
+<div class="lb" id="lightbox"><img id="lbImg" src="" alt=""/></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s)=>document.querySelector(s);
+let pickedImages = []; // dataURLs
+let rating = 5;
+/* ดึงโปรไฟล์ผู้ใช้ที่ล็อกอินไว้ (จากหน้าหลัก) */
+let me = null;
+try{ me = JSON.parse(localStorage.getItem('opg_user')||'null'); }catch(e){ me = null; }
+
+const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);};
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtDate(iso){const d=new Date(iso);return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;}
+
+/* ── เปิด/ปิด ฟอร์มเพิ่มรีวิว ── */
+$('#rvOpenBtn').addEventListener('click', ()=>{
+  $('#rvAddCard').style.display='block';
+  $('#rvOpenWrap').style.display='none';
+  $('#rvAddCard').scrollIntoView({behavior:'smooth',block:'center'});
+});
+$('#rvCloseBtn').addEventListener('click', ()=>{
+  $('#rvAddCard').style.display='none';
+  $('#rvOpenWrap').style.display='block';
+});
+
+/* ── ดาว ── */
+function paintStars(){document.querySelectorAll('#rvStars span').forEach(s=>s.classList.toggle('on', Number(s.dataset.v)<=rating));}
+document.querySelectorAll('#rvStars span').forEach(s=>s.addEventListener('click',()=>{rating=Number(s.dataset.v);paintStars();}));
+paintStars();
+
+/* ── ย่อรูปฝั่ง client ── */
+function resizeImage(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const MAX=1200;let{width:w,height:h}=img;
+      if(w>h&&w>MAX){h=h*MAX/w;w=MAX;} else if(h>MAX){w=w*MAX/h;h=MAX;}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      let q=0.72,data=c.toDataURL('image/jpeg',q);
+      while(data.length>650*1024&&q>0.4){q-=0.1;data=c.toDataURL('image/jpeg',q);}
+      resolve(data);
+    };
+    img.onerror=reject;img.src=url;
+  });
+}
+
+$('#rvImgInput').addEventListener('change', async (e)=>{
+  const files=[...e.target.files];
+  for(const f of files){
+    if(pickedImages.length>=6){toast('เพิ่มได้สูงสุด 6 รูป');break;}
+    try{const d=await resizeImage(f);pickedImages.push(d);}catch{}
+  }
+  e.target.value='';
+  renderThumbs();
+});
+function renderThumbs(){
+  $('#rvThumbs').innerHTML=pickedImages.map((d,i)=>`<div class="thumb"><img src="${d}"/><button data-i="${i}">✕</button></div>`).join('');
+  document.querySelectorAll('#rvThumbs button').forEach(b=>b.addEventListener('click',()=>{pickedImages.splice(Number(b.dataset.i),1);renderThumbs();}));
+}
+
+/* ── ส่งรีวิว (ถ้ามีหลายรูป → ส่งหลายรายการ) ── */
+$('#rvSubmit').addEventListener('click', async ()=>{
+  const text=$('#rvText').value.trim();
+  if(!text && !pickedImages.length){$('#rvMsg').textContent='กรุณาใส่ข้อความหรือรูปอย่างน้อย 1 อย่าง';$('#rvMsg').style.color='#c0392b';return;}
+  const btn=$('#rvSubmit');btn.disabled=true;btn.textContent='กำลังส่ง…';$('#rvMsg').textContent='';
+  try{
+    const images = pickedImages.length?pickedImages:[''];
+    for(let i=0;i<images.length;i++){
+      const body={text:i===0?text:'',rating,image:images[i],
+        name:me?.name||'', email:me?.email||'', picture:me?.picture||''};
+      const r=await fetch('/api/reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const d=await r.json();
+      if(!d.ok) throw new Error(d.error||'ส่งไม่สำเร็จ');
+    }
+    $('#rvText').value='';pickedImages=[];rating=5;paintStars();renderThumbs();
+    $('#rvAddCard').style.display='none';$('#rvOpenWrap').style.display='block';
+    toast('✅ ขอบคุณสำหรับรีวิว!');
+    loadReviews();
+  }catch(err){$('#rvMsg').textContent='❌ '+err.message;$('#rvMsg').style.color='#c0392b';}
+  finally{btn.disabled=false;btn.textContent='📨 ส่งรีวิว';}
+});
+
+/* ── โหลด & แสดงรีวิว ── */
+async function loadReviews(){
+  try{
+    const r=await fetch('/api/reviews?size=100');
+    const d=await r.json();
+    $('#rvLoading').style.display='none';
+    const list=(d.ok&&d.reviews)?d.reviews:[];
+    $('#rvCount').textContent = list.length ? `⭐ รีวิวทั้งหมด ${list.length} รายการ` : '';
+    if(!list.length){$('#rvEmpty').style.display='block';$('#rvGallery').innerHTML='';return;}
+    $('#rvEmpty').style.display='none';
+    $('#rvGallery').innerHTML=list.map(v=>{
+      const stars='★'.repeat(v.rating||5)+'☆'.repeat(5-(v.rating||5));
+      // ชื่อที่แสดง = อีเมลที่ล็อกอิน (ถ้าไม่มีอีเมลค่อยใช้ชื่อ)
+      const who = esc(v.email || v.name || 'ลูกค้า');
+      const seed = encodeURIComponent(v.email || v.name || 'ลูกค้า');
+      const genAvatar = `https://ui-avatars.com/api/?name=${seed}&background=9C8654&color=fff&size=96&bold=true`;
+      // มีรูปจริงใช้รูปจริง → ถ้าโหลดไม่ขึ้นค่อย fallback เป็นรูปสร้างจากอีเมล
+      const avatar = v.picture
+        ? `<img class="av" src="${esc(v.picture)}" referrerpolicy="no-referrer" alt="" onerror="this.onerror=null;this.src='${genAvatar}'"/>`
+        : `<img class="av" src="${genAvatar}" alt=""/>`;
+      return `<div class="rcard">
+        ${v.image?`<img src="${v.image}" loading="lazy" data-full="${v.image}"/>`:''}
+        <div class="body">
+          <div class="who">${avatar}<div><div class="nm">${who}</div></div></div>
+          <div class="rt">${stars}</div>
+          ${v.text?`<div class="tx">${esc(v.text)}</div>`:''}
+          <div class="dt">${fmtDate(v.createdAt)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    document.querySelectorAll('.rcard img').forEach(im=>im.addEventListener('click',()=>{$('#lbImg').src=im.dataset.full;$('#lightbox').classList.add('open');}));
+  }catch(e){$('#rvLoading').style.display='none';$('#rvEmpty').style.display='block';$('#rvEmpty').textContent='โหลดรีวิวไม่ได้';}
+}
+$('#lightbox').addEventListener('click',()=>$('#lightbox').classList.remove('open'));
+loadReviews();
+</script>
+</body>
+</html>

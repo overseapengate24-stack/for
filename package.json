@@ -1,0 +1,10 @@
+{
+  "name": "oversea-pengate",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "docx": "^9.7.1",
+    "nodemailer": "^6.10.1"
+  }
+}

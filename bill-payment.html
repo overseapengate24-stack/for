@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ตรวจสอบยอดเงิน (แอดมิน) · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:wght@700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--bg:#FAF6EE;--border:#ECE2CE;--border-soft:#F0E9D8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+.top{background:linear-gradient(90deg,#B89865,#9C8654);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.top h1{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex:1}
+.top a{color:#fff;font-size:13px;text-decoration:underline;cursor:pointer}
+.wrap{max-width:620px;margin:0 auto;padding:28px 16px 90px}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:24px;margin-bottom:18px;box-shadow:0 2px 10px rgba(124,103,57,.06)}
+.bill-no{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:20px;color:var(--brand-700)}
+.amount{text-align:center;padding:22px;background:var(--brand-50);border-radius:12px;margin:18px 0}
+.amount .lbl{font-size:13px;color:var(--ink-soft);margin-bottom:4px}
+.amount .v{font-family:'IBM Plex Mono',monospace;font-size:42px;font-weight:700;color:var(--brand-700)}
+.slip-t{font-weight:700;color:var(--brand-700);margin-bottom:10px;font-size:14.5px}
+.slip-img{width:100%;border-radius:12px;border:1.5px solid var(--border);cursor:zoom-in}
+.meta{font-size:12.5px;color:var(--ink-soft);margin-top:8px;text-align:center}
+.actions{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1.5px solid var(--border);padding:14px 20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;z-index:20}
+.btn{border:0;border-radius:10px;padding:13px 28px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer}
+.btn-ok{background:#16a34a;color:#fff}
+.btn-reject{background:#fff;border:1.5px solid #dc2626;color:#dc2626}
+.btn:disabled{opacity:.55;cursor:default}
+.empty{text-align:center;padding:60px;color:var(--ink-soft)}
+.okbox{background:#dcfce7;border:1px solid #86efac;color:#166534;border-radius:9px;padding:12px 14px;font-size:13.5px;font-weight:600;text-align:center;margin-bottom:16px}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}
+.lb img{max-width:100%;max-height:100%;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>💵 ตรวจสอบยอดเงิน (แอดมิน)</h1>
+  <a id="viewCust">👁 ดูบิลเต็ม</a>
+</div>
+<div class="wrap" id="root"><div class="empty">กำลังโหลด…</div></div>
+<div class="actions" id="actions" style="display:none">
+  <button class="btn btn-reject" id="btnReject">↩ ตีกลับ (ให้แนบใหม่)</button>
+  <button class="btn btn-ok" id="btnConfirm">✅ ยืนยันการชำระเงิน</button>
+</div>
+<div class="lb" id="lightbox"><img id="lbImg"/></div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const fmt=(n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtDate(iso){if(!iso)return '-';const d=new Date(iso);return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function billNoOf(o){const d=new Date(o.updatedAt||o.createdAt||Date.now());const code=`${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;const seq=(o.orderNo||'').replace(/\D/g,'').slice(-4)||'0000';return `BL${code}-${seq}`;}
+
+const qs=new URLSearchParams(location.search);
+const no=(qs.get('no')||'').trim().toUpperCase();
+let adminKey=sessionStorage.getItem('opg_admin_key')||'';
+let order=null;
+
+$('#viewCust').addEventListener('click',()=>window.open(`/bill-detail.html?no=${encodeURIComponent(no)}`,'_blank'));
+$('#btnConfirm').addEventListener('click',confirmPay);
+$('#btnReject').addEventListener('click',reject);
+$('#lightbox').addEventListener('click',()=>$('#lightbox').style.display='none');
+
+async function load(){
+  if(!no){ $('#root').innerHTML='<div class="empty">ไม่พบเลขบิล</div>'; return; }
+  if(!adminKey){ adminKey=prompt('ใส่ Admin Key:')||''; if(adminKey) sessionStorage.setItem('opg_admin_key',adminKey); }
+  let d=null;
+  try{ const r=await fetch(`/api/orders/track?no=${encodeURIComponent(no)}`); d=await r.json(); }catch(e){}
+  if(!d||!d.ok||!d.found){ $('#root').innerHTML='<div class="empty">ไม่พบบิลนี้</div>'; return; }
+  order=d; render();
+}
+
+function render(){
+  const d=order;
+  const shipFee=Number(d.shipping)||0,billFee=Number(d.billFee)||0,disc=Number(d.discount)||0;
+  const cnShip=Number(d.cnShipFee)||0,sack=Number(d.sackFee)||0,crateFee=Number(d.crateFee)||0,
+        qcFee=Number(d.qcFee)||0,taxPct=Number(d.taxPct)||0,thShip=Number(d.thShipFee)||0;
+  const subtotal=shipFee+cnShip+sack+crateFee+qcFee+billFee-disc;
+  const grand=subtotal-(subtotal*taxPct/100)+thShip;
+  const paid=d.billStatus==='PAID';
+
+  $('#root').innerHTML=`
+    ${paid?'<div class="okbox">✅ ยืนยันการชำระเงินแล้ว — กำลังเตรียมจัดส่ง</div>':''}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="bill-no">🧾 ${esc(billNoOf(d))}</div>
+        <div style="font-size:12.5px;color:var(--ink-soft)">${esc(d.orderNo)}</div>
+      </div>
+      <div class="amount">
+        <div class="lbl">ยอดชำระทั้งหมด</div>
+        <div class="v">฿${fmt(grand)}</div>
+      </div>
+      <div class="slip-t">📎 สลิปที่ลูกค้าแนบ</div>
+      ${d.slipImage
+        ? `<img class="slip-img" id="slipImg" src="${esc(d.slipImage)}"/><div class="meta">แนบเมื่อ: ${fmtDate(d.slipSubmittedAt)} · คลิกที่รูปเพื่อขยาย</div>`
+        : '<div class="empty">— ยังไม่มีสลิป —</div>'}
+    </div>`;
+
+  const im=$('#slipImg'); if(im) im.addEventListener('click',()=>{ $('#lbImg').src=im.src; $('#lightbox').style.display='flex'; });
+  $('#actions').style.display='';
+  $('#btnConfirm').disabled=paid;
+  $('#btnConfirm').textContent=paid?'✅ ยืนยันแล้ว':'✅ ยืนยันการชำระเงิน';
+  $('#btnReject').style.display=paid?'none':'';
+}
+
+async function patch(body,okMsg){
+  const r=await fetch(`/api/orders/update?no=${encodeURIComponent(no)}`,{
+    method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+    body:JSON.stringify(body),
+  });
+  const d=await r.json(); if(!d.ok) throw new Error(d.error||'ไม่สำเร็จ');
+  alert(okMsg); load();
+}
+async function confirmPay(){
+  if(!confirm('ยืนยันว่าได้รับเงินครบถ้วน? ออเดอร์จะไปขั้น "เตรียมจัดส่ง"')) return;
+  const b=$('#btnConfirm'); b.disabled=true; b.textContent='กำลังยืนยัน…';
+  try{ await patch({ billStatus:'PAID' },'✅ ยืนยันการชำระเงินแล้ว'); }
+  catch(e){ alert('❌ '+e.message); b.disabled=false; b.textContent='✅ ยืนยันการชำระเงิน'; }
+}
+async function reject(){
+  if(!confirm('ตีกลับสลิปนี้? ลูกค้าจะกลับไปสถานะ "รอชำระเงิน" และต้องแนบสลิปใหม่')) return;
+  try{ await patch({ billStatus:'AWAIT_PAY', slipImage:'' },'↩ ตีกลับแล้ว — ลูกค้าต้องแนบสลิปใหม่'); }
+  catch(e){ alert('❌ '+e.message); }
+}
+
+load();
+</script>
+</body>
+</html>

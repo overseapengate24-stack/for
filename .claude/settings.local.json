@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vercel --prod --yes)",
+      "Bash(curl -s -o /dev/null -w \"cart.html: %{http_code}\\\\n\" \"https://oversea-pengate.vercel.app/cart.html\")"
+    ]
+  }
+}

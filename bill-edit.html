@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>แก้ไขบิลค่าขนส่ง (แอดมิน) · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;--bg:#FAF6EE;--border:#ECE2CE;--border-soft:#F0E9D8;--blue:#1d4ed8;--blue-bg:#eff6ff;--blue-bd:#bfdbfe}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;font-variant-numeric:tabular-nums}
+.top{background:linear-gradient(90deg,#B89865,#9C8654);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.top h1{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex:1}
+.top a{color:#fff;font-size:13px;text-decoration:underline}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 80px}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 2px 10px rgba(124,103,57,.06)}
+.bill-no{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:22px;color:var(--brand-700)}
+.sec-t{font-weight:700;color:var(--brand-700);margin-bottom:12px;font-size:14.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ro{font-size:13.5px;line-height:1.9}
+.ro .k{color:var(--ink-soft);display:inline-block;min-width:90px}
+label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px}
+input,select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:14px;background:#fff;outline:none}
+input:focus,select:focus{border-color:var(--brand)}
+.calc{background:var(--blue-bg);border:1.5px dashed var(--blue-bd);border-radius:12px;padding:16px}
+.calc .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.calc .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.breakdown{margin-top:12px;padding-top:12px;border-top:1px solid var(--blue-bd);font-size:13px;color:#1e40af}
+.result{display:flex;justify-content:space-between;align-items:center;margin-top:14px;background:#fff;border:1.5px solid var(--blue-bd);border-radius:10px;padding:12px 16px}
+.result .lbl{font-weight:600;color:#1e40af}
+.result .val{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;color:var(--blue)}
+.summary .r{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:13.5px}
+.summary .r .v{font-family:'IBM Plex Mono',monospace;font-weight:600}
+.summary .r.total{border-top:2px solid var(--border);border-bottom:0;margin-top:4px;padding-top:12px}
+.summary .r.total .k{font-weight:700}.summary .r.total .v{font-size:19px;color:var(--brand-700)}
+.actions{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:12px 22px;font-family:inherit;font-weight:700;font-size:14.5px;cursor:pointer}
+.btn-save{background:#16a34a;color:#fff}
+.btn-ghost{background:#fff;border:1.5px solid var(--border);color:var(--ink)}
+.empty{text-align:center;padding:60px;color:var(--ink-soft)}
+.note{background:#fffbeb;border:1px solid #fde68a;color:#854d0e;border-radius:9px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}.calc .row4{grid-template-columns:1fr 1fr}.calc .row3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>🧾 แก้ไขบิลค่าขนส่ง (แอดมิน)</h1>
+  <a href="#" id="viewCust">👁 ดูแบบลูกค้า</a>
+</div>
+<div class="wrap" id="root"><div class="empty">กำลังโหลด…</div></div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmtDate(iso){if(!iso)return '-';const d=new Date(iso);return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+function billNoOf(o){const d=new Date(o.updatedAt||o.createdAt||Date.now());const code=`${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;const seq=(o.orderNo||'').replace(/\D/g,'').slice(-4)||'0000';return `BL${code}-${seq}`;}
+const SHIP_RATES={truck:{kg:45,cbm:7500,min:100},sea:{kg:30,cbm:4500,min:100}};
+/* เรทค่าส่งแยกตามประเภทสินค้า (฿/kg · ฿/CBM) — ของที่ต้องขออนุญาต/ลิขสิทธิ์ เรทสูงกว่า */
+const PRODUCT_RATES={
+  'สินค้าทั่วไป':          {truck:{kg:45,cbm:7500}, sea:{kg:28,cbm:4800}},
+  'สินค้าแบรนด์/ลิขสิทธิ์': {truck:{kg:60,cbm:9500}, sea:{kg:45,cbm:7000}},
+  'อ.ย':                  {truck:{kg:70,cbm:11000}, sea:{kg:55,cbm:8500}},
+  'ม.อ.ก':                {truck:{kg:70,cbm:11000}, sea:{kg:55,cbm:8500}},
+};
+function rateFor(pt, mode){
+  const base=SHIP_RATES[mode]; const pr=PRODUCT_RATES[pt]&&PRODUCT_RATES[pt][mode];
+  return { kg: pr?pr.kg:base.kg, cbm: pr?pr.cbm:base.cbm, min: base.min };
+}
+function applyRate(){
+  const r=rateFor($('#bProductType')?$('#bProductType').value:'', $('#cMode').value);
+  $('#cRkg').value=r.kg; $('#cRcbm').value=r.cbm; $('#cMin').value=r.min; calc();
+}
+function onProductType(){ updatePtBadge(); applyRate(); }
+
+const qs=new URLSearchParams(location.search);
+const no=(qs.get('no')||'').trim().toUpperCase();
+let adminKey=sessionStorage.getItem('opg_admin_key')||'';
+let order=null;
+
+$('#viewCust').addEventListener('click',e=>{e.preventDefault();window.open(`/bill-detail.html?no=${encodeURIComponent(no)}`,'_blank');});
+
+async function load(){
+  if(!no){ $('#root').innerHTML='<div class="empty">ไม่พบเลขบิล</div>'; return; }
+  if(!adminKey){ adminKey=prompt('ใส่ Admin Key เพื่อแก้ไขบิล:')||''; if(adminKey) sessionStorage.setItem('opg_admin_key',adminKey); }
+  let d=null;
+  try{ const r=await fetch(`/api/orders/track?no=${encodeURIComponent(no)}`); d=await r.json(); }catch(e){}
+  if(!d||!d.ok||!d.found){ $('#root').innerHTML='<div class="empty">ไม่พบบิลนี้</div>'; return; }
+  order=d; render();
+}
+
+function render(){
+  const d=order, c=d.customer||{}, a=c.address||{};
+  const items=d.items||[], first=items[0]||{};
+  const addrText=[a.detail,a.subdistrict,a.district,a.province,a.postal].filter(Boolean).join(' ')||a.detail||'-';
+  const mode=(d.shipMethod==='เรือ')?'sea':'truck';
+  const r=SHIP_RATES[mode];
+  const wKg=Number(d.billWeightKg)|| (Number(d.weight)||0)/1000;
+
+  $('#root').innerHTML=`
+    <div class="note">⚙️ หน้านี้สำหรับแอดมิน — กรอกน้ำหนัก/ขนาดพัสดุ ระบบจะคิด CBM + ค่าส่งให้ แล้วกดบันทึก ลูกค้าจะเห็นในบิลทันที</div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        <div class="bill-no">🧾 ${esc(billNoOf(d))}</div>
+        <div style="font-size:12.5px;color:var(--ink-soft)">ออเดอร์: ${esc(d.orderNo)} · วันที่ออกบิล ${fmtDate(d.updatedAt||d.createdAt)}</div>
+      </div>
+      <div class="grid2">
+        <div class="ro">
+          <div class="sec-t">📍 ผู้รับ (จากข้อมูลลูกค้า)</div>
+          <div><span class="k">ชื่อ</span> ${esc(c.name||a.recipient||'-')}</div>
+          <div><span class="k">เบอร์โทร</span> ${esc(c.phone||a.phone||'-')}</div>
+          <div><span class="k">ที่อยู่</span> ${esc(addrText)}</div>
+        </div>
+        <div class="ro">
+          <div class="sec-t">📦 พัสดุ</div>
+          <div><span class="k">สินค้า</span> ${esc(first.name||'ทั่วไป')}</div>
+          <div><span class="k">Tracking</span> ${esc(d.cnThTrackingNo||d.trackingNo||'-')}</div>
+          <div><span class="k">น้ำหนัก(เดิม)</span> ${d.weight?Number(d.weight).toLocaleString()+' กรัม':'-'}</div>
+          <div><span class="k">ลูกค้าเลือก</span>
+            <span style="display:inline-block;background:#e0f2fe;color:#0369a1;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600">${(d.shipMethod==='เรือ')?'🚢 ทางเรือ':'🚚 ทางรถ'}</span>
+            <span style="display:inline-block;background:${d.crate?'#dcfce7':'#f3f4f6'};color:${d.crate?'#166534':'#9ca3af'};border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;margin-left:4px">🪵 ตีลังไม้ ${d.crate?'✓':'✗'}</span>
+            <span style="display:inline-block;background:${d.qc?'#dcfce7':'#f3f4f6'};color:${d.qc?'#166534':'#9ca3af'};border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;margin-left:4px">🔍 QC ${d.qc?'✓':'✗'}</span>
+            <span id="ptBadge" style="display:none;background:#ede9fe;color:#6d28d9;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;margin-left:4px"></span>
+          </div>
+          <div style="margin-top:8px"><span class="k">ประเภทสินค้า</span>
+            <select id="bProductType" onchange="onProductType()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit">
+              <option value="">— เลือกประเภท —</option>
+              <option>สินค้าทั่วไป</option>
+              <option>สินค้าแบรนด์/ลิขสิทธิ์</option>
+              <option>อ.ย</option>
+              <option>ม.อ.ก</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${d.billGroup ? `
+    <div class="card" style="border-color:#bae6fd;background:#f0f9ff">
+      <div class="sec-t" style="color:#0369a1">🔗 บิลนี้อยู่ในกลุ่มรวมบิล: ${esc(d.billGroup)}</div>
+      <div id="groupBox" style="font-size:13px;color:var(--ink-soft)">กำลังโหลดบิลในกลุ่ม…</div>
+      <div class="calc" style="background:#fff;border-color:#bae6fd;margin-top:12px">
+        <div style="font-size:13px;color:#0369a1;margin-bottom:10px">คิดค่าส่งรวมใหม่ตามน้ำหนัก/ขนาดรวมจริง (ส่งทีเดียวทั้งกลุ่ม)</div>
+        <div class="row4">
+          <div><label>น้ำหนักรวม (กก.)</label><input type="number" id="gKg" min="0" step="0.01" oninput="gCalc()"/></div>
+          <div><label>กว้าง (ซม.)</label><input type="number" id="gW" min="0" oninput="gCalc()"/></div>
+          <div><label>ยาว (ซม.)</label><input type="number" id="gL" min="0" oninput="gCalc()"/></div>
+          <div><label>สูง (ซม.)</label><input type="number" id="gH" min="0" oninput="gCalc()"/></div>
+        </div>
+        <div class="row3">
+          <div><label>เรท ฿/กก.</label><input type="number" id="gRkg" min="0" value="45" oninput="gCalc()"/></div>
+          <div><label>เรท ฿/CBM</label><input type="number" id="gRcbm" min="0" value="7500" oninput="gCalc()"/></div>
+          <div><label>ขั้นต่ำ (฿)</label><input type="number" id="gMin" min="0" value="100" oninput="gCalc()"/></div>
+        </div>
+        <div class="breakdown" id="gBreak">—</div>
+        <div class="result"><span class="lbl">ค่าส่งรวมทั้งกลุ่ม</span><span class="val" id="gPrice">฿0.00</span></div>
+        <div style="text-align:right;margin-top:10px"><button type="button" class="btn btn-save" id="gApply" onclick="gApply()" style="padding:9px 18px;font-size:13.5px">✅ ใช้ค่าส่งรวมกับทั้งกลุ่ม</button></div>
+        <div style="font-size:11.5px;color:var(--ink-soft);margin-top:8px">* ระบบจะตั้งค่าส่งรวมไว้ที่บิลนี้ และตั้งค่าส่งบิลอื่นในกลุ่มเป็น 0 (รวมเป็นก้อนเดียว)</div>
+      </div>
+    </div>` : ''}
+
+    <div class="card">
+      <div class="sec-t">🧮 คำนวณค่าขนส่ง</div>
+      <div class="calc">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <label style="margin:0">ประเภทขนส่ง</label>
+          <select id="cMode" style="width:auto" onchange="onMode()"><option value="truck">ทางรถ</option><option value="sea">ทางเรือ</option></select>
+        </div>
+        <div class="row4">
+          <div><label>น้ำหนัก (กก.)</label><input type="number" id="cKg" min="0" step="0.01" oninput="calc()"/></div>
+          <div><label>กว้าง (ซม.)</label><input type="number" id="cW" min="0" oninput="calc()"/></div>
+          <div><label>ยาว (ซม.)</label><input type="number" id="cL" min="0" oninput="calc()"/></div>
+          <div><label>สูง (ซม.)</label><input type="number" id="cH" min="0" oninput="calc()"/></div>
+        </div>
+        <div class="row3">
+          <div><label>เรท ฿/กก.</label><input type="number" id="cRkg" min="0" oninput="calc()"/></div>
+          <div><label>เรท ฿/CBM</label><input type="number" id="cRcbm" min="0" oninput="calc()"/></div>
+          <div><label>ขั้นต่ำ (฿)</label><input type="number" id="cMin" min="0" oninput="calc()"/></div>
+        </div>
+        <div class="breakdown" id="cBreak">—</div>
+        <div class="result"><span class="lbl">ยอดค่าขนส่ง (CBM <span id="cCbm">0.0000</span>)</span><span class="val" id="cPrice">฿0.00</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-t">🔍 คำนวณค่าบริการ QC</div>
+      <div class="calc" id="qcCalc" data-total="${Number(d.total)||0}" data-cnt="${(d.items||[]).reduce((s,it)=>s+(Number(it.qty)||1),0)}">
+        <div style="font-size:13px;color:#1e40af;margin-bottom:10px">ค่าสินค้า ฿${fmt(Number(d.total)||0)} · จำนวน ${(d.items||[]).reduce((s,it)=>s+(Number(it.qty)||1),0)} ชิ้น</div>
+        <div class="row2">
+          <div><label>วิธีคิด</label>
+            <select id="qcMode" onchange="qcCalc()"><option value="pct">% ของค่าสินค้า</option><option value="flat">เหมาต่อชิ้น</option></select></div>
+          <div><label id="qcLbl">% ที่คิด</label><input type="number" id="qcVal" min="0" step="0.01" oninput="qcCalc()"/></div>
+        </div>
+        <div class="breakdown" id="qcBreak">—</div>
+        <div class="result"><span class="lbl">ค่า QC</span><span class="val" id="qcRes">฿0.00</span></div>
+        <div style="text-align:right;margin-top:10px"><button type="button" class="btn btn-save" id="qcApply" onclick="qcApply()" style="padding:8px 16px;font-size:13px">➕ ใส่เป็นค่า QC</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-t">🪵 คำนวณค่าตีลังไม้</div>
+      <div class="calc">
+        <div class="row2">
+          <div><label>วิธีคิด</label>
+            <select id="crMode" onchange="crCalc()"><option value="cbm">ตามปริมาตร (CBM)</option><option value="sum">ตามขนาด (ก+ย+ส)</option><option value="flat">เหมาต่อชิ้น</option></select></div>
+          <div><label>จำนวน (ชิ้น)</label><input type="number" id="crQty" min="1" value="1" oninput="crCalc()"/></div>
+        </div>
+        <div class="row4">
+          <div><label>กว้าง (ซม.)</label><input type="number" id="crW" min="0" oninput="crCalc()"/></div>
+          <div><label>ยาว (ซม.)</label><input type="number" id="crL" min="0" oninput="crCalc()"/></div>
+          <div><label>สูง (ซม.)</label><input type="number" id="crH" min="0" oninput="crCalc()"/></div>
+          <div><label id="crRateLbl">เรท ฿/CBM</label><input type="number" id="crRate" min="0" value="3500" oninput="crCalc()"/></div>
+        </div>
+        <div class="row2"><div><label>ขั้นต่ำ (฿)</label><input type="number" id="crMin" min="0" value="200" oninput="crCalc()"/></div><div></div></div>
+        <div class="breakdown" id="crBreak">—</div>
+        <div class="result"><span class="lbl">ค่าตีลังไม้</span><span class="val" id="crRes">฿0.00</span></div>
+        <div style="text-align:right;margin-top:10px"><button type="button" class="btn btn-save" id="crApply" onclick="crApply()" style="padding:8px 16px;font-size:13px">➕ ใส่เป็นค่าตีลังไม้</button></div>
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--brand-50);border-color:var(--brand-100)">
+      <div class="grid2">
+        <div>
+          <div class="sec-t">🧾 บิลค่าขนส่ง</div>
+          <div class="row2"><div><label>ค่าขนส่งจีน-ไทย ฿ <span style="color:var(--ink-xsoft);font-weight:400">(โกดังจีน→ไทย)</span></label><input type="number" id="cShipMain" min="0" oninput="calcSum()"/></div><div></div></div>
+          <div class="row2"><div id="cnShipBox"><label>ค่าจัดส่งในจีน ฿</label><input type="number" id="cCnShip" min="0" oninput="calcSum()"/></div>
+            <div><label>ค่ากระสอบ ฿</label><input type="number" id="cSack" min="0" oninput="calcSum()"/></div></div>
+          <div class="row2"><div><label>ค่าตีลังไม้ ฿</label><input type="number" id="cCrateFee" min="0" oninput="calcSum()"/></div>
+            <div><label>ค่าบริการ QC ฿</label><input type="number" id="cQcFee" min="0" oninput="calcSum()"/></div></div>
+          <div class="row2"><div><label>ค่าบริการ (เปิดบิล) ฿</label><input type="number" id="cBillFee" min="0" oninput="calcSum()"/></div>
+            <div><label>ส่วนลด ฿</label><input type="number" id="cDisc" min="0" oninput="calcSum()"/></div></div>
+          <div class="row2"><div><label>หักภาษี ณ ที่จ่าย %</label><input type="number" id="cTaxPct" min="0" step="0.01" oninput="calcSum()"/></div><div></div></div>
+        </div>
+        <div>
+          <div class="sec-t">สรุปยอด</div>
+          <div class="summary" id="sumBox"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="window.close()">ปิด</button>
+      <button class="btn btn-save" id="saveBtn">💾 บันทึกบิล</button>
+    </div>`;
+
+  /* เติมค่าเริ่มต้น */
+  $('#cMode').value=mode;
+  $('#cKg').value=wKg||'';
+  $('#cW').value=Number(d.billW)||''; $('#cL').value=Number(d.billL)||''; $('#cH').value=Number(d.billH)||'';
+  const r0=rateFor(d.productType||'', mode);
+  $('#cRkg').value=r0.kg; $('#cRcbm').value=r0.cbm; $('#cMin').value=r0.min;
+  $('#cBillFee').value=Number(d.billFee)||''; $('#cDisc').value=Number(d.discount)||'';
+  $('#cCnShip').value=Number(d.cnShipFee)||''; $('#cSack').value=Number(d.sackFee)||'';
+  $('#cCrateFee').value=Number(d.crateFee)||''; $('#cQcFee').value=Number(d.qcFee)||'';
+  $('#cTaxPct').value=Number(d.taxPct)||'';
+  calc();
+  $('#cShipMain').value=Number(d.shipping)||'';  /* คงค่าที่บันทึกไว้ (หลัง calc เพื่อไม่ให้ถูกทับ) */
+  if($('#bProductType')) $('#bProductType').value=d.productType||'';
+  updatePtBadge();
+  /* ออเดอร์นำเข้า (ลูกค้าส่งของเอง) — ลูกค้าจ่ายค่าส่งในจีนเองตรงให้ขนส่ง → ซ่อนช่องไม่ให้คิดในบิล */
+  if(d.kind==='import'){
+    const box=$('#cnShipBox'); if(box) box.style.display='none';
+    $('#cCnShip').value='0';
+  }
+  calcSum();
+  $('#saveBtn').addEventListener('click',save);
+  if(d.billGroup) loadGroup(d.billGroup);
+}
+
+/* ── กลุ่มรวมบิล (ฝั่งแอดมิน) ── */
+let groupOrders=[];
+async function loadGroup(g){
+  try{
+    const r=await fetch(`/api/orders/track?group=${encodeURIComponent(g)}`);
+    const dd=await r.json(); groupOrders=(dd.ok&&dd.orders)?dd.orders:[];
+  }catch(e){ groupOrders=[]; }
+  const box=$('#groupBox'); if(!box) return;
+  const totKg=groupOrders.reduce((s,o)=>s+(Number(o.billWeightKg)||0),0);
+  box.innerHTML = groupOrders.map(o=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border-soft)"><span>${esc(o.orderNo)} · ${o.items} รายการ</span><span class="mono">น้ำหนัก ${fmt(o.billWeightKg)} กก. · ค่าส่ง ฿${fmt(o.shipping)}</span></div>`).join('')
+    + `<div style="text-align:right;margin-top:6px;font-weight:600">รวม ${groupOrders.length} บิล · น้ำหนักรวม ${fmt(totKg)} กก.</div>`;
+  if($('#gKg')&&!$('#gKg').value) $('#gKg').value=totKg||'';
+  gCalc();
+}
+function gCalc(){
+  const kg=+$('#gKg').value||0,w=+$('#gW').value||0,l=+$('#gL').value||0,h=+$('#gH').value||0;
+  const rkg=+$('#gRkg').value||0,rcbm=+$('#gRcbm').value||0,min=+$('#gMin').value||0;
+  const cbm=(w*l*h)/1000000,byKg=kg*rkg,byCbm=cbm*rcbm,price=Math.max(byKg,byCbm,min);
+  const used=price===byCbm?'CBM':(price===byKg?'น้ำหนัก':'ขั้นต่ำ');
+  if($('#gBreak')) $('#gBreak').textContent=`น้ำหนัก ${kg}×฿${rkg}=฿${fmt(byKg)} · CBM ${cbm.toFixed(4)}×฿${rcbm}=฿${fmt(byCbm)} · คิดตาม${used}`;
+  if($('#gPrice')){ $('#gPrice').textContent='฿'+fmt(price); $('#gPrice').dataset.v=price.toFixed(2); }
+}
+async function gApply(){
+  const price=+($('#gPrice').dataset.v||0);
+  if(price<=0){ alert('ยังไม่ได้คำนวณค่าส่งรวม'); return; }
+  if(!groupOrders.length){ alert('ยังโหลดบิลในกลุ่มไม่เสร็จ'); return; }
+  if(!confirm(`ตั้งค่าส่งรวม ฿${fmt(price)} ให้ทั้งกลุ่ม ${groupOrders.length} บิล?\n(บิลนี้ = ฿${fmt(price)}, บิลอื่น = ฿0)`)) return;
+  const btn=$('#gApply'); btn.disabled=true; btn.textContent='กำลังบันทึก…';
+  try{
+    for(const o of groupOrders){
+      const ship = o.orderNo===no ? price : 0;
+      await fetch(`/api/orders/update?no=${encodeURIComponent(o.orderNo)}`,{
+        method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+        body:JSON.stringify({ shipping:String(ship) }),
+      });
+    }
+    $('#cPrice').dataset.v=price.toFixed(2); $('#cPrice').textContent='฿'+fmt(price);
+    if($('#cShipMain')) $('#cShipMain').value=price.toFixed(2);
+    calcSum();
+    alert('✅ ตั้งค่าส่งรวมให้ทั้งกลุ่มแล้ว');
+    loadGroup(order.billGroup);
+  }catch(e){ alert('❌ '+e.message); }
+  finally{ btn.disabled=false; btn.textContent='✅ ใช้ค่าส่งรวมกับทั้งกลุ่ม'; }
+}
+
+function onMode(){ applyRate(); }
+
+function calc(){
+  const kg=+$('#cKg').value||0, w=+$('#cW').value||0, l=+$('#cL').value||0, h=+$('#cH').value||0;
+  const rkg=+$('#cRkg').value||0, rcbm=+$('#cRcbm').value||0, min=+$('#cMin').value||0;
+  const cbm=(w*l*h)/1000000, byKg=kg*rkg, byCbm=cbm*rcbm;
+  const price=Math.max(byKg,byCbm,min);
+  const used=price===byCbm?'CBM':(price===byKg?'น้ำหนัก':'ขั้นต่ำ');
+  $('#cCbm').textContent=cbm.toFixed(4);
+  $('#cBreak').textContent=`น้ำหนัก ${kg} × ฿${rkg} = ฿${byKg.toFixed(2)} · CBM ${cbm.toFixed(4)} × ฿${rcbm} = ฿${byCbm.toFixed(2)} · คิดตาม${used}`;
+  $('#cPrice').textContent='฿'+fmt(price);
+  $('#cPrice').dataset.v=price.toFixed(2);
+  if($('#cShipMain')) $('#cShipMain').value=price.toFixed(2);  /* เครื่องคำนวณเติมลงช่องค่าขนส่งจีน-ไทย */
+  calcSum();
+}
+function qcCalc(){
+  const mode=$('#qcMode').value, v=+$('#qcVal').value||0;
+  const box=$('#qcCalc'); const total=+box.dataset.total||0, cnt=+box.dataset.cnt||0;
+  $('#qcLbl').textContent = mode==='pct' ? '% ที่คิด' : '฿ ต่อชิ้น';
+  let fee = mode==='pct' ? total*v/100 : v*cnt;
+  fee = Math.round(fee*100)/100;
+  $('#qcBreak').textContent = mode==='pct' ? `${v}% × ฿${fmt(total)} = ฿${fmt(fee)}` : `฿${v} × ${cnt} ชิ้น = ฿${fmt(fee)}`;
+  $('#qcRes').textContent = '฿'+fmt(fee);
+  $('#qcApply').dataset.fee = fee;
+}
+function qcApply(){
+  const fee=+($('#qcApply').dataset.fee||0);
+  if(fee<=0){ alert('ยังไม่ได้คำนวณ'); return; }
+  $('#cQcFee').value = fee; calcSum();
+}
+function crCalc(){
+  const mode=$('#crMode').value, qty=Math.max(1,+$('#crQty').value||1);
+  const w=+$('#crW').value||0, l=+$('#crL').value||0, h=+$('#crH').value||0;
+  const rate=+$('#crRate').value||0, min=+$('#crMin').value||0;
+  $('#crRateLbl').textContent = mode==='cbm' ? 'เรท ฿/CBM' : (mode==='sum' ? 'เรท ฿/ซม.' : 'เรท ฿/ชิ้น');
+  let each, info;
+  if(mode==='cbm'){ const cbm=(w*l*h)/1000000; each=Math.max(cbm*rate,min); info=`CBM ${cbm.toFixed(4)} × ฿${rate} = ฿${fmt(cbm*rate)} (ขั้นต่ำ ฿${min})`; }
+  else if(mode==='sum'){ const s=w+l+h; each=Math.max(s*rate,min); info=`ก+ย+ส ${s}ซม. × ฿${rate} = ฿${fmt(s*rate)} (ขั้นต่ำ ฿${min})`; }
+  else { each=rate; info=`฿${rate}/ชิ้น`; }
+  const fee=Math.round(each*qty*100)/100;
+  $('#crBreak').textContent = `${info} · ×${qty} ชิ้น`;
+  $('#crRes').textContent='฿'+fmt(fee);
+  $('#crApply').dataset.fee=fee;
+}
+function crApply(){
+  const fee=+($('#crApply').dataset.fee||0);
+  if(fee<=0){ alert('ยังไม่ได้คำนวณ'); return; }
+  $('#cCrateFee').value=fee; calcSum();
+}
+function calcSum(){
+  const ship=+($('#cShipMain').value||0), cnShip=+$('#cCnShip').value||0, sack=+$('#cSack').value||0,
+        crate=+$('#cCrateFee').value||0, qc=+$('#cQcFee').value||0, bill=+$('#cBillFee').value||0,
+        disc=+$('#cDisc').value||0, taxPct=+$('#cTaxPct').value||0;
+  const subtotal=ship+cnShip+sack+crate+qc+bill-disc;
+  const tax=subtotal*taxPct/100;
+  const grand=subtotal-tax;
+  $('#sumBox').innerHTML=`
+    <div class="r"><span class="k">ค่าขนส่งจีนมาไทย</span><span class="v">${fmt(ship)}</span></div>
+    ${(order&&order.kind==='import')?'':`<div class="r"><span class="k">ค่าจัดส่งในจีน</span><span class="v">${fmt(cnShip)}</span></div>`}
+    <div class="r"><span class="k">ค่ากระสอบ</span><span class="v">${fmt(sack)}</span></div>
+    <div class="r"><span class="k">ค่าตีลังไม้</span><span class="v">${fmt(crate)}</span></div>
+    <div class="r"><span class="k">ค่าบริการ QC</span><span class="v">${fmt(qc)}</span></div>
+    <div class="r"><span class="k">ค่าบริการ</span><span class="v">${fmt(bill)}</span></div>
+    <div class="r"><span class="k">ส่วนลด</span><span class="v">${fmt(disc)}</span></div>
+    <div class="r"><span class="k">จำนวนเงินรวมทั้งสิ้น</span><span class="v">${fmt(subtotal)}</span></div>
+    <div class="r"><span class="k">หักภาษี ณ ที่จ่าย (${taxPct}%)</span><span class="v">${fmt(tax)}</span></div>
+    <div class="r total"><span class="k">ยอดชำระ</span><span class="v">${fmt(grand)} ฿</span></div>`;
+}
+function updatePtBadge(){
+  const el=$('#bProductType'), b=$('#ptBadge'); if(!el||!b) return;
+  const v=el.value;
+  if(v){ b.textContent='🏷️ '+v; b.style.display='inline-block'; }
+  else { b.style.display='none'; }
+}
+async function save(){
+  const btn=$('#saveBtn'); btn.disabled=true; btn.textContent='กำลังบันทึก…';
+  const w=+$('#cW').value||0, l=+$('#cL').value||0, h=+$('#cH').value||0;
+  const patch={
+    shipping: String(+$('#cShipMain').value||0),
+    shipMethod: $('#cMode').value==='sea'?'เรือ':'รถ',
+    productType: $('#bProductType')?$('#bProductType').value:'',
+    billFee: +$('#cBillFee').value||0,
+    discount: +$('#cDisc').value||0,
+    cnShipFee: +$('#cCnShip').value||0,
+    sackFee: +$('#cSack').value||0,
+    crateFee: +$('#cCrateFee').value||0,
+    qcFee: +$('#cQcFee').value||0,
+    taxPct: +$('#cTaxPct').value||0,
+    thShipFee: 0,
+    billWeightKg: +$('#cKg').value||0,
+    billW:w, billL:l, billH:h, billCbm:Number(((w*l*h)/1000000).toFixed(6)),
+  };
+  try{
+    const r=await fetch(`/api/orders/update?no=${encodeURIComponent(no)}`,{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify(patch),
+    });
+    const d=await r.json();
+    if(!d.ok){ if(r.status===401){ alert('Admin Key ไม่ถูกต้อง'); sessionStorage.removeItem('opg_admin_key'); } throw new Error(d.error||'บันทึกไม่สำเร็จ'); }
+    btn.textContent='✅ บันทึกแล้ว';
+    alert('✅ บันทึกบิลเรียบร้อย — ลูกค้าเห็นยอดค่าส่งในบิลแล้ว');
+    /* ปิดหน้านี้ (ถ้าเปิดเป็นแท็บใหม่) หรือกลับไปหน้าแอดมิน */
+    if(window.opener && !window.opener.closed){ window.close(); }
+    else { location.href='/admin.html'; }
+  }catch(e){ alert('❌ '+e.message); btn.disabled=false; btn.textContent='💾 บันทึกบิล'; }
+}
+load();
+</script>
+</body>
+</html>

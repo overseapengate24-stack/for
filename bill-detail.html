@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>รายละเอียดบิล · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--ink-xsoft:#B0A48C;--bg:#FAF6EE;--surface:#FFFFFF;--border:#ECE2CE;--border-soft:#F0E9D8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#3C2A0E;color:#cfd8de;display:flex;flex-direction:column;z-index:60;overflow-y:auto;transition:transform .25s}
+.sb-prof{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-prof img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--brand)}
+.sb-prof .nm{font-weight:600;font-size:14px;color:#fff;text-align:center}
+.sb-prof .cr{font-size:12px;color:#F5B301;font-weight:600}
+.sb-nav{padding:10px 0;flex:1}
+.sb-nav a{display:flex;align-items:center;gap:11px;padding:12px 20px;font-size:14px;color:#cfd8de;border-left:3px solid transparent}
+.sb-nav a:hover{background:rgba(255,255,255,.05);color:#fff}
+.sb-nav a.active{background:rgba(0,0,0,.25);color:#fff;border-left-color:var(--brand);font-weight:600}
+.sb-nav .ic{width:18px;text-align:center}
+.main{margin-left:240px}
+.ytop{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#B89865,#9C8654);padding:10px 18px;position:sticky;top:0;z-index:40}
+.ytop h1{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:#fff;flex:1}
+.crumbs{font-size:12.5px;color:rgba(255,255,255,.85)}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 16px 70px}
+/* stepper */
+.stepper{display:flex;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:18px 10px;margin-bottom:18px;overflow-x:auto}
+.stp{flex:1;min-width:96px;text-align:center;position:relative}
+.stp .dot{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--border);margin:0 auto 6px;display:grid;place-items:center;font-size:11px;color:var(--ink-xsoft);position:relative;z-index:2}
+.stp.on .dot{background:#F5B301;border-color:#F5B301;color:#fff}
+.stp.now .dot{background:var(--brand-600);border-color:var(--brand-600);color:#fff;box-shadow:0 0 0 4px var(--brand-100)}
+.stp .lbl{font-size:11px;color:var(--ink-soft)}
+.stp.on .lbl,.stp.now .lbl{color:var(--brand-700);font-weight:600}
+.stp::before{content:"";position:absolute;top:11px;left:-50%;width:100%;height:2px;background:var(--border);z-index:1}
+.stp:first-child::before{display:none}
+.stp.on::before{background:#F5B301}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 2px 10px rgba(124,103,57,.06)}
+.bill-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.bill-no{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:20px;color:var(--brand-700)}
+.addr-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.addr h4{font-size:12px;color:var(--ink-soft);font-weight:500;margin-bottom:4px}
+.addr .nm{font-weight:700;font-size:15px;margin-bottom:6px}
+.addr .det{font-size:13px;color:var(--ink);line-height:1.7}
+.addr .tel{font-size:12.5px;color:var(--ink-soft);margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--brand-50);color:var(--ink-soft);font-weight:600;padding:9px 6px;text-align:center;white-space:nowrap}
+tbody td{padding:9px 6px;border-bottom:1px solid var(--border-soft);text-align:center;white-space:nowrap}
+tfoot td{padding:9px 6px;font-weight:700;background:#fafafa}
+.mono{font-family:'IBM Plex Mono',monospace}
+.body-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}
+.steps-list{font-size:13.5px}
+.steps-list .s{margin-bottom:14px}
+.steps-list .s b{color:var(--brand-700)}
+.steps-list .hint{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.btn-y{background:#F5B301;color:#3a2e10;border:0;border-radius:8px;padding:9px 16px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer}
+.summary{font-size:13.5px}
+.summary .r{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border-soft)}
+.summary .r .k{color:var(--ink-soft)}
+.summary .r .v{font-family:'IBM Plex Mono',monospace;font-weight:600}
+.summary .r.total{border-top:2px solid var(--border);border-bottom:0;margin-top:4px;padding-top:12px}
+.summary .r.total .k{font-weight:700;color:var(--ink)}
+.summary .r.total .v{font-size:19px;color:var(--brand-700)}
+.confirm-btn{width:100%;background:#16a34a;color:#fff;border:0;border-radius:9px;padding:12px;font-family:inherit;font-weight:700;font-size:14.5px;cursor:pointer;margin-top:14px}
+.empty{text-align:center;padding:60px;color:var(--ink-soft)}
+#navToggle{display:none;position:fixed;top:12px;left:12px;z-index:70;background:#3C2A0E;color:#fff;border:0;border-radius:8px;width:42px;height:42px;font-size:20px;cursor:pointer}
+.sb-bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+@media(max-width:860px){.body-grid{grid-template-columns:1fr}.addr-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.main{margin-left:0;padding-top:54px}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}#navToggle{display:block}.sidebar.open ~ .sb-bd{display:block}.wrap{padding:16px 8px 60px}}
+</style>
+</head>
+<body>
+<button id="navToggle" aria-label="เมนู">☰</button>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-prof">
+    <img id="sbPic" src="/logo.png?v=2" alt=""/>
+    <div class="nm" id="sbName">ผู้ใช้</div>
+    <div class="cr" id="sbCredit">💰 0.00 ฿</div>
+  </div>
+  <nav class="sb-nav">
+    <a href="/"><span class="ic">🏠</span> หน้าหลัก</a>
+    <a href="/topup.html"><span class="ic">💳</span> การเงิน (เติมเงิน)</a>
+    <a href="/orders.html"><span class="ic">📄</span> รายการสั่งซื้อสินค้าจีน</a>
+    <a href="/bills.html" class="active"><span class="ic">🧾</span> รายการบิลค่าขนส่ง</a>
+    <a href="/track-list.html"><span class="ic">🚚</span> ติดตามสถานะสินค้า</a>
+    <a href="/reviews.html"><span class="ic">⭐</span> รีวิว</a>
+  </nav>
+</aside>
+<div class="sb-bd" id="sbBd"></div>
+
+<main class="main">
+  <div class="ytop">
+    <h1>🧾 รายละเอียดบิลค่าขนส่ง</h1>
+    <div class="crumbs">🏠 หน้าหลัก › รายการบิล › รายละเอียด</div>
+  </div>
+  <div class="wrap" id="root"><div class="empty">กำลังโหลด…</div></div>
+</main>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmtDate(iso){if(!iso)return '-';const d=new Date(iso);return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+function billNoOf(o){const d=new Date(o.updatedAt||o.createdAt||Date.now());const code=`${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;const seq=(o.orderNo||'').replace(/\D/g,'').slice(-4)||'0000';return `BL${code}-${seq}`;}
+const me=JSON.parse(localStorage.getItem('opg_user')||'null');
+if(me){ if(me.picture)$('#sbPic').src=me.picture; $('#sbName').textContent=me.name||me.email;
+  fetch(`/api/topup?email=${encodeURIComponent(me.email.toLowerCase())}`).then(r=>r.json()).then(d=>{ $('#sbCredit').textContent='💰 '+fmt(d.credit||0)+' ฿';}).catch(()=>{}); }
+$('#navToggle').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+$('#sbBd').addEventListener('click',()=>$('#sidebar').classList.remove('open'));
+
+const DTYPE={pickup:'รับเอง',warehouse:'โกดังจัดส่ง',private:'ขนส่งเอกชน'};
+function deliveryText(d){ const t=DTYPE[d.deliveryType]||''; return d.deliveryType==='private'? `${t} (${d.deliveryCarrier||'-'})` : t; }
+const BANK={label:'ธนาคารกสิกรไทย (KBANK)',logo:'/dpa_bank_kbank@2x.png',acc:'075-3-99703-2',name:'Oversea PenGate'};
+function confirmBtnHtml(d){
+  if(d.billStatus==='REVIEW') return '<button class="confirm-btn" disabled style="opacity:.6;cursor:default">⏱ ส่งตรวจสอบแล้ว — รอแจ้งยอด</button>';
+  if(d.billStatus==='AWAIT_PAY') return '<div style="text-align:center;color:#b45309;font-weight:600;font-size:13px;padding:8px">💳 กรุณาโอนเงินแล้วแนบสลิปด้านบน (ขั้นตอนที่ 5)</div>';
+  if(d.billStatus==='SLIP') return '<button class="confirm-btn" disabled style="opacity:.6;cursor:default">⏱ รอตรวจสอบยอดเงิน</button>';
+  if(d.billStatus==='PAID') return '<div style="text-align:center;color:#16a34a;font-weight:700;font-size:14px;padding:8px">✅ ชำระเงินเรียบร้อย — เตรียมจัดส่ง</div>';
+  if(d.billStatus==='SHIPPED') return '<div style="text-align:center;color:#0369a1;font-weight:700;font-size:14px;padding:8px">🚚 จัดส่งแล้ว — ดูเลขขนส่งด้านบน</div>';
+  if(d.billStatus==='DELIVERED') return '<div style="text-align:center;color:#16a34a;font-weight:700;font-size:14px;padding:8px">🎉 จัดส่งเรียบร้อย — ขอบคุณที่ใช้บริการ</div>';
+  return '<button class="confirm-btn" id="confirmBill">✔ ยืนยันข้อมูลส่งตรวจสอบ</button>';
+}
+const STEPS=['แบบร่าง','เลือกการจัดส่ง','ตรวจสอบค่าบริการ','รอชำระเงิน','ตรวจสอบยอดเงิน','เตรียมจัดส่ง','จัดส่งเรียบร้อย'];
+const STEP_IC=['📝','🚚','⏱','💳','🔍','📦','✅'];
+function stepIndexOf(o){
+  if(o.shipStatus==='DELIVERED') return 6;
+  if(o.billStatus==='DELIVERED') return 6;   /* จัดส่งถึงลูกค้าเรียบร้อย */
+  if(o.billStatus==='SHIPPED') return 6;     /* แอดมินใส่เลขขนส่งไทยแล้ว → จัดส่งเรียบร้อย */
+  if(o.shipStatus==='DELIVERING') return 5;
+  if(o.billStatus==='PAID') return 5;        /* ยืนยันยอดเงินแล้ว → เตรียมจัดส่ง */
+  if(o.billStatus==='SLIP') return 4;        /* แนบสลิปแล้ว → ตรวจสอบยอดเงิน */
+  if(o.billStatus==='AWAIT_PAY') return 3;   /* แอดมินยืนยันค่าบริการ → รอชำระเงิน */
+  if(o.billStatus==='REVIEW') return 2;      /* ลูกค้ายืนยัน → ตรวจสอบค่าบริการ */
+  return 1; /* เพิ่งออกบิล = เลือกการจัดส่ง */
+}
+
+const qs=new URLSearchParams(location.search);
+const no=(qs.get('no')||'').trim().toUpperCase();
+
+async function load(){
+  if(!no){ $('#root').innerHTML='<div class="empty">ไม่พบเลขบิล</div>'; return; }
+  let d=null;
+  try{ const r=await fetch(`/api/orders/track?no=${encodeURIComponent(no)}`); d=await r.json(); }catch(e){}
+  if(!d||!d.ok||!d.found){ $('#root').innerHTML='<div class="empty">ไม่พบบิลนี้</div>'; return; }
+  render(d);
+}
+
+async function confirmBill(d){
+  if(!d.deliveryChosen){ alert('⚠️ กรุณาเลือกวิธีจัดส่งก่อน (ขั้นตอนที่ 3)'); return; }
+  if(!(d.customer?.address?.detail)){ alert('⚠️ กรุณาระบุที่อยู่จัดส่งก่อน'); return; }
+  const btn=$('#confirmBill'); if(btn){ btn.disabled=true; btn.textContent='กำลังส่ง…'; }
+  try{
+    const r=await fetch('/api/orders/bill-action',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'confirm', orderNo:no, email:d.customer?.email||'' }),
+    });
+    const res=await r.json();
+    if(!res.ok) throw new Error(res.error||'ส่งไม่สำเร็จ');
+    alert('✅ ส่งข้อมูลให้เจ้าหน้าที่ตรวจสอบค่าบริการแล้ว — ระบบจะแจ้งยอดชำระทาง LINE');
+    load();
+  }catch(e){
+    alert('❌ '+e.message);
+    if(btn){ btn.disabled=false; btn.textContent='✔ ยืนยันข้อมูลส่งตรวจสอบ'; }
+  }
+}
+
+function render(d){
+  const c=d.customer||{}; const a=(c.address)||{};
+  const items=d.items||[]; const first=items[0]||{};
+  const weightKg=Number(d.billWeightKg)||((Number(d.weight)||0)/1000);
+  const L=Number(d.billL)||0, W=Number(d.billW)||0, H=Number(d.billH)||0, CBM=Number(d.billCbm)||0;
+  const dimTxt=(v)=>v?fmt(v):'-';
+  const shipFee=Number(d.shipping)||0, billFee=Number(d.billFee)||0, disc=Number(d.discount)||0;
+  const cnShip=Number(d.cnShipFee)||0, sack=Number(d.sackFee)||0, crateFee=Number(d.crateFee)||0,
+        qcFee=Number(d.qcFee)||0, taxPct=Number(d.taxPct)||0;
+  const subtotal=shipFee+cnShip+sack+crateFee+qcFee+billFee-disc;
+  const tax=subtotal*taxPct/100;
+  const grand=subtotal-tax;
+  const si=stepIndexOf(d);
+  const addrText=[a.detail,a.subdistrict,a.district,a.province,a.postal].filter(Boolean).join(' ') || a.detail || '-';
+
+  const stepper=STEPS.map((s,i)=>`<div class="stp ${i<si?'on':''} ${i===si?'now':''}"><div class="dot">${i<si?'✓':STEP_IC[i]}</div><div class="lbl">${s}</div></div>`).join('');
+
+  const sumItems=[
+    ['ค่าขนส่งจีนมาไทย',shipFee],['ค่าจัดส่งในจีน',cnShip],['ค่ากระสอบ',sack],['ค่าตีลังไม้',crateFee],
+    ['ค่าบริการ QC',qcFee],['ค่าบริการ (เปิดบิล)',billFee],['ส่วนลด',disc],
+    ['จำนวนเงินรวมทั้งสิ้น',subtotal],[`หักภาษี ณ ที่จ่าย (${taxPct}%)`,tax],
+  ];
+  let summary='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">';
+  for(let i=0;i<sumItems.length;i+=2){
+    const [k1,v1]=sumItems[i], [k2,v2]=sumItems[i+1]||['',''];
+    summary+=`<div><div style="font-size:13px;color:var(--ink-soft)">${esc(k1)}</div><div style="font-size:15px;font-weight:600;color:var(--brand-700)">${fmt(v1)}</div></div>`;
+    if(sumItems[i+1]) summary+=`<div><div style="font-size:13px;color:var(--ink-soft)">${esc(k2)}</div><div style="font-size:15px;font-weight:600;color:var(--brand-700)">${fmt(v2)}</div></div>`;
+  }
+  summary+='</div>';
+
+  $('#root').innerHTML=`
+    <div class="stepper">${stepper}</div>
+    <div class="card">
+      <div class="bill-head">
+        <div class="bill-no">🧾 ${esc(billNoOf(d))}</div>
+        <div style="font-size:12.5px;color:var(--ink-soft)">วันที่ออกบิล: ${fmtDate(d.updatedAt||d.createdAt)}</div>
+      </div>
+      <div class="addr-grid" style="margin-top:14px">
+        <div class="addr">
+          <h4>จาก</h4>
+          <div class="nm">Oversea PenGate (โกดังจีน→ไทย)</div>
+          <div class="det">112/41 Lanna Home,<br>Chiang Mai, Thailand</div>
+          <div class="tel">☎ 095-760-6258</div>
+        </div>
+        <div class="addr">
+          <h4>ถึง</h4>
+          <div class="nm">${esc(c.name||a.recipient||'(ยังไม่ระบุ)')}</div>
+          <div class="det">${esc(addrText)}</div>
+          <div class="tel">☎ ${esc(c.phone||a.phone||'-')}</div>
+          <button class="btn-y" id="btnEditAddr" style="margin-top:8px">📍 ${a.detail?'เปลี่ยนที่อยู่':'เพิ่มที่อยู่จัดส่ง'}</button>
+        </div>
+        <div class="addr">
+          <h4>ข้อมูลบิล</h4>
+          <div class="det">รหัสสมาชิก: <b>${esc((c.email||'').split('@')[0]||'-')}</b></div>
+          <div class="det">การจัดส่ง: ${esc(d.shipMethod||'รถ')}</div>
+          <div class="det">สถานะ: <b style="color:var(--brand-700)">${STEPS[si]}</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="overflow-x:auto"><table>
+        <thead><tr>
+          <th>ลำดับ</th><th>วันที่</th><th>Shipping No</th><th>Tracking No</th><th>สินค้า</th>
+          <th>รถ/เรือ</th><th>Box</th><th>น้ำหนัก (KG)</th><th>L</th><th>W</th><th>H</th><th>CBM</th><th>ยอดค่าขนส่ง</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td><td>${fmtDate(d.createdAt)}</td><td class="mono">${esc(d.orderNo)}</td>
+            <td class="mono">${esc(d.cnThTrackingNo||d.trackingNo||'-')}</td><td>${esc(first.name||'ทั่วไป')}</td>
+            <td>${esc(d.shipMethod||'รถ')}</td><td>1</td><td class="mono">${weightKg?fmt(weightKg):'-'}</td>
+            <td class="mono">${dimTxt(L)}</td><td class="mono">${dimTxt(W)}</td><td class="mono">${dimTxt(H)}</td><td class="mono">${CBM?CBM.toFixed(4):'-'}</td><td class="mono">${fmt(shipFee)}</td>
+          </tr>
+        </tbody>
+        <tfoot><tr><td colspan="7" style="text-align:right">รวม</td><td class="mono">${weightKg?fmt(weightKg):'-'}</td><td colspan="3"></td><td class="mono">${CBM?CBM.toFixed(4):'-'}</td><td class="mono">${fmt(shipFee)}</td></tr></tfoot>
+      </table></div>
+    </div>
+
+    <div class="body-grid">
+      <div class="card">
+        <div style="font-weight:700;color:var(--brand-700);margin-bottom:14px">สถานะ: ${STEPS[si]}</div>
+        <div class="steps-list">
+          <div class="s"><b>1. ตรวจสอบรายการสินค้า</b><div class="hint">*กรณีตรวจสอบแล้วมีคำถาม กรุณาติดต่อเจ้าหน้าที่</div></div>
+          <div class="s"><b>2. เลือกที่อยู่ผู้รับ</b><div class="hint">*เพิ่ม/แก้ไขที่อยู่ได้ที่เมนู บัญชีของฉัน</div></div>
+          <div class="s"><b>3. เลือกบริการการจัดส่งสินค้า</b><div style="margin-top:6px"><button class="btn-y" id="btnDelivery">🚚 เลือกการจัดส่งสินค้า</button> <span id="deliveryLabel" style="font-size:12.5px;font-weight:600;color:${d.deliveryChosen?'#16a34a':'#dc2626'}">${d.deliveryChosen?esc(deliveryText(d)):'***กรุณาระบุ'}</span></div></div>
+          <div class="s"><b>4. หักภาษี ณ ที่จ่าย</b><div class="hint"><label><input type="checkbox"/> ต้องการให้หักภาษี ณ ที่จ่าย</label></div></div>
+          ${(d.billStatus==='AWAIT_PAY'||d.billStatus==='SLIP'||d.billStatus==='PAID'||d.billStatus==='SHIPPED'||d.billStatus==='DELIVERED')?`
+          <div class="s"><b>5. แจ้งชำระเงิน</b>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:12px;background:#1aa54b;color:#fff;border-radius:10px;padding:12px 14px;max-width:340px">
+              <img src="${esc(BANK.logo)}" alt="KBANK" style="width:42px;height:42px;border-radius:9px;background:#fff;padding:4px;object-fit:contain" onerror="this.style.display='none'"/>
+              <div>
+                <div style="font-weight:700">${esc(BANK.label)}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700">${esc(BANK.acc)}</div>
+                <div style="font-size:12px;opacity:.9">ชื่อบัญชี : ${esc(BANK.name)}</div>
+              </div>
+            </div>
+            <div style="font-size:12.5px;color:var(--ink-soft);margin-top:6px">ยอดที่ต้องโอน: <b style="color:var(--brand-700)">${fmt(grand)} ฿</b></div>
+            ${d.billStatus==='AWAIT_PAY'?`
+              <div style="margin-top:10px">
+                <input type="file" id="slipFile" accept="image/*" style="display:none"/>
+                <button class="btn-y" id="btnSlip">📎 แนบหลักฐานชำระเงิน</button>
+                <span id="slipName" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span>
+              </div>`:''}
+            ${d.billStatus==='SLIP'?`<div style="margin-top:10px;color:#b45309;font-weight:600;font-size:13px">⏱ แนบสลิปแล้ว — รอเจ้าหน้าที่ตรวจสอบยอดเงิน</div>${d.slipImage?`<img src="${esc(d.slipImage)}" style="max-width:200px;border-radius:8px;border:1px solid var(--border);margin-top:8px"/>`:''}`:''}
+            ${d.billStatus==='PAID'?`<div style="margin-top:10px;color:#16a34a;font-weight:700;font-size:13px">✅ ตรวจสอบยอดเงินแล้ว — กำลังเตรียมจัดส่ง</div>`:''}
+            ${(d.billStatus==='SHIPPED'||d.billStatus==='DELIVERED')?`<div style="margin-top:10px;color:#16a34a;font-weight:700;font-size:13px">✅ ชำระเงินเรียบร้อย</div>`:''}
+          </div>`:''}
+          ${(d.billStatus==='SHIPPED'||d.billStatus==='DELIVERED')?`
+          <div class="s"><b>6. ${d.billStatus==='DELIVERED'?'จัดส่งเรียบร้อย 🎉':'จัดส่งแล้ว 🚚'}</b>
+            ${d.billStatus==='DELIVERED'?`<div style="margin-top:6px;color:#16a34a;font-weight:700;font-size:13px">🎉 จัดส่งถึงคุณเรียบร้อยแล้ว ขอบคุณที่ใช้บริการ</div>`:''}
+            <div style="margin-top:8px;background:#e0f2fe;border:1px solid #bae6fd;border-radius:10px;padding:12px 14px;max-width:360px">
+              <div style="font-size:12.5px;color:var(--ink-soft)">เลขขนส่งไทย (Tracking)</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;color:#0369a1">${esc(d.thTrackingNo||'-')}</div>
+              ${d.deliveryCarrier?`<div style="font-size:12px;color:var(--ink-soft);margin-top:4px">ขนส่ง: ${esc(d.deliveryCarrier)}</div>`:''}
+            </div>
+            ${d.shipPhoto?`<div style="margin-top:10px"><div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:6px">📷 หลักฐานการจัดส่ง</div><img src="${esc(d.shipPhoto)}" style="max-width:260px;border-radius:10px;border:1px solid var(--border)"/></div>`:''}
+          </div>`:''}
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;color:var(--brand-700);margin-bottom:12px">สรุปยอดเงิน</div>
+        <div class="summary">
+          ${summary}
+          <div class="r total"><span class="k">ยอดชำระ</span><span class="v">${fmt(grand)} ฿</span></div>
+        </div>
+        ${confirmBtnHtml(d)}
+      </div>
+    </div>
+
+    <div id="addrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:16px">
+      <div style="background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#FFD400;padding:14px 20px;border-radius:14px 14px 0 0">
+          <div style="font-weight:700;font-size:16px;color:#3C2A0E">📇 เพิ่มข้อมูลที่อยู่</div>
+          <button id="addrClose" style="border:0;background:none;font-size:20px;cursor:pointer;color:#3C2A0E;opacity:.6">✕</button>
+        </div>
+        <div style="padding:20px">
+          <div id="savedAddrWrap" style="margin-bottom:14px"></div>
+          <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">ประเภทข้อมูลที่อยู่</div>
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin-bottom:14px"><input type="radio" name="aType" checked/> ผู้รับ</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 14px">
+            <div><label style="font-size:12.5px;color:var(--ink-soft)">ชื่อ-นามสกุล <span style="color:#e11">*</span></label><input id="aName" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px"/></div>
+            <div><label style="font-size:12.5px;color:var(--ink-soft)">เบอร์ติดต่อ <span style="color:#e11">*</span></label><input id="aPhone" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px"/></div>
+            <div style="grid-column:1/-1"><label style="font-size:12.5px;color:var(--ink-soft)">ที่อยู่ <span style="color:#e11">*</span></label><input id="aDetail" placeholder="เลขที่ / อาคาร / หมู่ / ซอย / ถนน" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px"/></div>
+            <div><label style="font-size:12.5px;color:var(--ink-soft)">ตำบล / แขวง <span style="color:#e11">*</span></label><input id="aSub" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px"/></div>
+            <div><label style="font-size:12.5px;color:var(--ink-soft)">อำเภอ / เขต <span style="color:#e11">*</span></label><input id="aDistrict" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px"/></div>
+            <div><label style="font-size:12.5px;color:var(--ink-soft)">จังหวัด <span style="color:#e11">*</span></label><input id="aProvince" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px"/></div>
+            <div><label style="font-size:12.5px;color:var(--ink-soft)">รหัสไปรษณีย์ <span style="color:#e11">*</span></label><input id="aPostal" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px"/></div>
+          </div>
+          <button id="addrSave" style="margin-top:18px;background:#16a34a;color:#fff;border:0;border-radius:9px;padding:11px 18px;font-weight:700;cursor:pointer;font-family:inherit">💾 บันทึกที่อยู่</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="delivModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:16px">
+      <div style="background:#fff;border-radius:14px;max-width:520px;width:100%;max-height:90vh;overflow:auto;padding:22px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-weight:700;font-size:16px;color:var(--brand-700)">🚚 เลือกการจัดส่งสินค้า</div>
+          <button id="delivClose" style="border:0;background:none;font-size:20px;cursor:pointer">✕</button>
+        </div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:8px">ประเภทข้อมูลที่อยู่</div>
+        <label style="display:block;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;margin-bottom:8px;cursor:pointer;font-size:13.5px"><input type="radio" name="dtype" value="private" checked/> ขนส่งเอกชน <span style="color:var(--ink-soft);font-size:12px">(ชำระเงินปลายทาง)</span></label>
+        <div id="carrierWrap" style="margin-top:6px">
+          <label style="font-size:12px;color:var(--ink-soft)">ขนส่งเอกชน *</label>
+          <select id="dCarrier" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px">
+            <option value="">— กรุณาเลือก —</option>
+            <option value="Flash">Flash</option>
+            <option value="Kerry">Kerry</option>
+            <option value="J&T">J&T</option>
+            <option value="ไปรษณีย์ไทย">ไปรษณีย์ไทย</option>
+          </select>
+          <input id="dCarrierOther" placeholder="ระบุชื่อขนส่ง" style="display:none;width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;margin-top:8px"/>
+        </div>
+        <button class="confirm-btn" id="delivSave" style="margin-top:16px">✔ ยืนยันการจัดส่ง</button>
+      </div>
+    </div>`;
+
+  const cb=$('#confirmBill'); if(cb) cb.addEventListener('click',()=>confirmBill(d));
+  wireAddress();
+  wireDelivery();
+  wireSlip(d);
+}
+
+function wireSlip(d){
+  const btn=$('#btnSlip'), file=$('#slipFile'); if(!btn||!file) return;
+  btn.addEventListener('click',()=>file.click());
+  file.addEventListener('change',async()=>{
+    const f=file.files[0]; if(!f) return;
+    $('#slipName').textContent='กำลังอัปโหลด…';
+    try{
+      const dataUrl=await compressImage(f);
+      const r=await fetch('/api/orders/bill-action',{ method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ action:'slip', orderNo:no, email:d.customer?.email||'', slip:dataUrl }) });
+      const res=await r.json(); if(!res.ok) throw new Error(res.error||'อัปโหลดไม่สำเร็จ');
+      alert('✅ แนบสลิปเรียบร้อย — รอเจ้าหน้าที่ตรวจสอบยอดเงิน');
+      load();
+    }catch(e){ alert('❌ '+e.message); $('#slipName').textContent=''; }
+  });
+}
+/* ย่อรูปสลิปก่อนอัปโหลด (กว้างไม่เกิน 1000px, JPEG 0.8) */
+function compressImage(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(); const rd=new FileReader();
+    rd.onload=()=>{ img.onload=()=>{
+      const max=1000; let{width:w,height:h}=img;
+      if(w>max){ h=Math.round(h*max/w); w=max; }
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(cv.toDataURL('image/jpeg',0.8));
+    }; img.onerror=reject; img.src=rd.result; };
+    rd.onerror=reject; rd.readAsDataURL(file);
+  });
+}
+
+function wireDelivery(){
+  const modal=$('#delivModal');
+  $('#btnDelivery')?.addEventListener('click',()=>{ modal.style.display='flex'; });
+  $('#delivClose')?.addEventListener('click',()=>{ modal.style.display='none'; });
+  modal?.addEventListener('click',e=>{ if(e.target===modal) modal.style.display='none'; });
+  const sync=()=>{ const t=document.querySelector('input[name=dtype]:checked')?.value; $('#carrierWrap').style.display = t==='private'?'':'none'; };
+  document.querySelectorAll('input[name=dtype]').forEach(r=>r.addEventListener('change',sync)); sync();
+  $('#dCarrier')?.addEventListener('change',()=>{ $('#dCarrierOther').style.display = $('#dCarrier').value==='ขนส่งอื่นๆ'?'':'none'; });
+  $('#delivSave')?.addEventListener('click',saveDelivery);
+}
+async function saveDelivery(){
+  if(!me||!me.email){ alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+  const type=document.querySelector('input[name=dtype]:checked')?.value||'private';
+  let carrier='';
+  if(type==='private'){
+    carrier=$('#dCarrier').value;
+    if(carrier==='ขนส่งอื่นๆ') carrier=$('#dCarrierOther').value.trim()||'ขนส่งอื่นๆ';
+    if(!carrier){ alert('กรุณาเลือกขนส่งเอกชน'); return; }
+  }
+  const btn=$('#delivSave'); btn.disabled=true; btn.textContent='กำลังบันทึก…';
+  try{
+    const r=await fetch('/api/orders/set-shipping',{ method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ orderNo:no, email:me.email.toLowerCase(), deliveryType:type, deliveryCarrier:carrier }) });
+    const d=await r.json(); if(!d.ok) throw new Error(d.error||'บันทึกไม่สำเร็จ');
+    $('#delivModal').style.display='none'; load();
+  }catch(e){ alert('❌ '+e.message); btn.disabled=false; btn.textContent='✔ ยืนยันการจัดส่ง'; }
+}
+
+function wireAddress(){
+  const modal=$('#addrModal');
+  $('#btnEditAddr')?.addEventListener('click',()=>{ modal.style.display='flex'; loadSaved(); });
+  $('#addrClose')?.addEventListener('click',()=>{ modal.style.display='none'; });
+  modal?.addEventListener('click',e=>{ if(e.target===modal) modal.style.display='none'; });
+  $('#addrSave')?.addEventListener('click',saveNewAddr);
+}
+async function loadSaved(){
+  if(!me||!me.email){ $('#savedAddrWrap').innerHTML='<div style="font-size:13px;color:var(--ink-soft)">เข้าสู่ระบบเพื่อใช้ที่อยู่ที่บันทึกไว้</div>'; return; }
+  let list=[];
+  try{ const r=await fetch(`/api/address?email=${encodeURIComponent(me.email.toLowerCase())}`); const d=await r.json(); list=d.ok?(d.addresses||[]):[]; }catch(e){}
+  if(!list.length){ $('#savedAddrWrap').innerHTML='<div style="font-size:13px;color:var(--ink-soft)">ยังไม่มีที่อยู่ที่บันทึกไว้</div>'; return; }
+  $('#savedAddrWrap').innerHTML='<div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px">เลือกที่อยู่ที่บันทึกไว้</div>'+list.map((a,i)=>`
+    <div class="savedAddr" data-i="${i}" style="border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:8px;cursor:pointer;font-size:13px">
+      <b>${esc(a.recipient||'-')}</b> ☎ ${esc(a.phone||'-')}<div style="color:var(--ink-soft)">${esc([a.detail,a.province,a.postal].filter(Boolean).join(' '))}</div>
+    </div>`).join('');
+  document.querySelectorAll('.savedAddr').forEach(el=>el.addEventListener('click',()=>applyAddr(list[+el.dataset.i])));
+}
+async function applyAddr(a){ await commitAddr(a, false); }
+async function saveNewAddr(){
+  const a={ recipient:$('#aName').value.trim(), phone:$('#aPhone').value.trim(), detail:$('#aDetail').value.trim(),
+            subdistrict:$('#aSub').value.trim(), district:$('#aDistrict').value.trim(),
+            province:$('#aProvince').value.trim(), postal:$('#aPostal').value.trim() };
+  if(!a.recipient||!a.phone||!a.detail||!a.subdistrict||!a.district||!a.province||!a.postal){
+    alert('กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบ'); return;
+  }
+  await commitAddr(a, true);
+}
+async function commitAddr(a, saveToBook){
+  if(!me||!me.email){ alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+  const btn=$('#addrSave'); if(btn){ btn.disabled=true; btn.textContent='กำลังบันทึก…'; }
+  try{
+    const r=await fetch('/api/orders/set-address',{ method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ orderNo:no, email:me.email.toLowerCase(), address:a, saveToBook }) });
+    const d=await r.json(); if(!d.ok) throw new Error(d.error||'บันทึกไม่สำเร็จ');
+    $('#addrModal').style.display='none';
+    load();  /* โหลดบิลใหม่ให้เห็นที่อยู่ */
+  }catch(e){ alert('❌ '+e.message); if(btn){ btn.disabled=false; btn.textContent='💾 บันทึกที่อยู่'; } }
+}
+load();
+</script>
+</body>
+</html>
