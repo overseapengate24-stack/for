@@ -75,6 +75,7 @@ body::before{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
 /* TOP BAR */
 .topbar{
   position:sticky;top:0;z-index:50;
+<<<<<<< HEAD
   background:linear-gradient(90deg,#3C2A0E,#63522C);
   border-bottom:2px solid var(--brand);
   display:flex;align-items:center;gap:16px;padding:0 26px;height:70px;
@@ -127,6 +128,34 @@ body::before{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
 .stat-card .label{font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
 .stat-card .val{font-size:30px;font-weight:700;color:var(--ink);font-family:'IBM Plex Mono',monospace;line-height:1.1}
 .stat-card .sub{font-size:11px;color:var(--ink-xsoft);margin-top:5px;font-weight:500;letter-spacing:.5px}
+=======
+  background:rgba(255,249,244,.9);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:16px;padding:0 24px;height:64px;
+}
+.topbar-logo{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;
+  font-style:italic;font-weight:700;font-size:22px;color:var(--brand-600)}
+.topbar-logo small{font-size:9px;letter-spacing:5px;color:var(--ink-soft);font-weight:400;display:block}
+.topbar .spacer{flex:1}
+.topbar .admin-badge{
+  background:var(--brand-50);border:1px solid var(--brand-100);
+  border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--brand-600)}
+#logoutBtn{font-size:13px;padding:6px 14px}
+
+/* MAIN CONTENT */
+.main{max-width:1200px;margin:0 auto;padding:28px 24px 60px}
+
+/* STATS ROW */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);padding:18px 20px;
+  box-shadow:var(--shadow-sm);
+}
+.stat-card .label{font-size:12px;font-weight:500;color:var(--ink-soft);margin-bottom:6px}
+.stat-card .val{font-size:26px;font-weight:700;color:var(--ink);font-family:'Playfair Display',serif}
+.stat-card .sub{font-size:11.5px;color:var(--ink-xsoft);margin-top:3px}
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 
 /* TOOLBAR */
 .toolbar{
@@ -142,6 +171,7 @@ body::before{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
 }
 .search-wrap input:focus{border-color:var(--brand)}
 .search-wrap .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--ink-xsoft)}
+<<<<<<< HEAD
 .filter-tabs{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--border-soft);border-radius:14px;padding:10px 12px;margin-bottom:16px;box-shadow:0 2px 8px rgba(124,103,57,.05)}
 .ftab{
   padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;
@@ -149,6 +179,15 @@ body::before{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
 }
 .ftab:hover{border-color:var(--brand);color:var(--brand-600);transform:translateY(-1px)}
 .ftab.active{background:var(--brand-600);color:#fff;border-color:var(--brand-600);box-shadow:0 3px 10px rgba(124,103,57,.25)}
+=======
+.filter-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.ftab{
+  padding:6px 13px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;
+  border:1.5px solid var(--border-soft);background:#fff;color:var(--ink-soft);transition:.12s all;
+}
+.ftab:hover{border-color:var(--brand);color:var(--brand-600)}
+.ftab.active{background:var(--brand-600);color:#fff;border-color:var(--brand-600)}
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 
 /* ORDERS TABLE */
 .orders-table{width:100%;border-collapse:collapse;background:var(--surface);
@@ -172,11 +211,15 @@ body::before{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
 .price-cell{font-weight:600;font-size:13.5px;white-space:nowrap}
 .price-cell small{display:block;font-size:11px;font-weight:400;color:var(--ink-soft)}
 .date-cell{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+<<<<<<< HEAD
 .actions-cell{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .actions-cell .btn{padding:6px 10px;font-size:12px;border-radius:8px;white-space:nowrap;min-height:30px}
 .actions-cell .btn-icon{padding:6px 9px;min-width:32px;display:inline-flex;align-items:center;justify-content:center}
 .btn-approve{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:0}
 .btn-approve:hover{background:linear-gradient(135deg,#15803d,#14532d)}
+=======
+.actions-cell{display:flex;gap:6px;align-items:center}
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 
 /* STATUS PILLS */
 .sp{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
@@ -218,20 +261,32 @@ body::before{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
   background:var(--surface);border-radius:22px;width:100%;max-width:560px;
   box-shadow:0 24px 60px rgba(60,53,38,.22);border:1.5px solid var(--border);
   overflow:hidden;animation:modalIn .2s ease;
+<<<<<<< HEAD
   max-height:calc(100vh - 40px);display:flex;flex-direction:column;
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 }
 @keyframes modalIn{from{transform:translateY(16px) scale(.98);opacity:0}to{transform:none;opacity:1}}
 .modal-head{
   background:var(--brand-50);border-bottom:1px solid var(--border);
+<<<<<<< HEAD
   padding:20px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+=======
+  padding:20px 24px;display:flex;align-items:center;gap:12px;
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 }
 .modal-head h3{font-size:17px;font-weight:700;color:var(--ink);flex:1}
 .modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink-soft);
   width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
   transition:.12s background}
 .modal-close:hover{background:var(--border)}
+<<<<<<< HEAD
 .modal-body{padding:24px;overflow-y:auto;flex:1;min-height:0}
 .modal-footer{padding:16px 24px;border-top:1px solid var(--border-soft);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
+=======
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border-soft);display:flex;gap:10px;justify-content:flex-end}
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 
 /* FORM ELEMENTS */
 .field{margin-bottom:18px}
@@ -339,11 +394,14 @@ body::before{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
 .ship-tl-row .del{background:none;border:0;color:var(--red);cursor:pointer;font-size:15px;line-height:1;flex-shrink:0;padding:2px}
 .ship-tl-empty{font-size:13px;color:var(--ink-soft);text-align:center;padding:12px;background:var(--gray-bg);border-radius:10px}
 </style>
+<<<<<<< HEAD
 <style id="numFont">
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 .order-no,.po-no,.po-link,.no,.ono-box .no,.stat .n,.val,.detail-row .v,.price-cell,.credit,.tot,.lines .tot,.summary .v,.totals .v,.ytop .credit,.sb-prof .cr,.amt,.amount,.mo-card .no,.date-cell,.items-count{font-family:'IBM Plex Mono',ui-monospace,'IBM Plex Sans Thai',monospace !important;font-style:normal !important;font-variant-numeric:tabular-nums}
 body{font-variant-numeric:tabular-nums}
 </style>
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 </head>
 <body>
 
@@ -377,7 +435,11 @@ body{font-variant-numeric:tabular-nums}
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-logo">
+<<<<<<< HEAD
       <img src="/logo.png?v=2" alt="" style="width:44px;height:44px;background:rgba(255,255,255,.08);border-radius:10px;padding:4px"/>
+=======
+      <span>OS</span>
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
       <div>
         <span>Admin Panel</span>
         <small>OVERSEA PENGATE</small>
@@ -385,13 +447,18 @@ body{font-variant-numeric:tabular-nums}
     </div>
     <div class="spacer"></div>
     <span class="admin-badge">🔐 ADMIN</span>
+<<<<<<< HEAD
     <button class="btn btn-sm" id="logoutBtn">ออกจากระบบ</button>
+=======
+    <button class="btn btn-ghost btn-sm" id="logoutBtn">ออกจากระบบ</button>
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
   </header>
 
   <!-- MAIN -->
   <div class="main">
 
     <!-- STATS -->
+<<<<<<< HEAD
     <!-- เรท RMB → THB (2 บริการ) -->
     <div style="background:#fff;border:1.5px solid var(--brand-100);border-radius:14px;padding:14px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(124,103,57,.06)">
       <div style="font-weight:700;color:var(--brand-700);font-size:14.5px;margin-bottom:12px">💱 เรทแลกเงินวันนี้ <span style="font-weight:400;font-size:12px;color:var(--ink-soft)">(1 หยวน ¥ = … บาท)</span></div>
@@ -497,14 +564,64 @@ body{font-variant-numeric:tabular-nums}
     <div class="toolbar" id="orderToolbar">
       <h2>รายการออเดอร์</h2>
       <button class="btn btn-sm" id="payDepositBtn" data-stat="PAYDEPOSIT" style="background:linear-gradient(135deg,#5fa97a,#3d8a5a);color:#fff;border:none;font-weight:700" title="ออเดอร์ที่ลูกค้าวางลิงก์ผ่านหน้า 'ฝากจ่ายเงิน'">💴 ฝากจ่ายเงิน <span id="statPayDeposit" style="background:rgba(255,255,255,.25);border-radius:8px;padding:1px 7px;margin-left:4px">0</span></button>
+=======
+    <div class="stats" id="statsRow">
+      <div class="stat-card">
+        <div class="label">ออเดอร์ทั้งหมด</div>
+        <div class="val" id="statTotal">—</div>
+        <div class="sub">รายการ</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">รอเช็คราคา</div>
+        <div class="val" id="statNew" style="color:#374151">—</div>
+        <div class="sub">NEW</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">แจ้งราคาแล้ว</div>
+        <div class="val" id="statQuoted" style="color:var(--yellow)">—</div>
+        <div class="sub">รอชำระเงิน</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">ชำระเงินแล้ว</div>
+        <div class="val" id="statPaid" style="color:var(--green)">—</div>
+        <div class="sub">PAID</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">กำลังจัดส่ง</div>
+        <div class="val" id="statShipped" style="color:var(--purple)">—</div>
+        <div class="sub">SHIPPED</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <h2>รายการออเดอร์</h2>
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
       <div class="search-wrap">
         <span class="ico">🔍</span>
         <input type="text" id="searchInput" placeholder="ค้นหาออเดอร์ / ชื่อ / LINE…"/>
       </div>
+<<<<<<< HEAD
       <button class="btn btn-ghost btn-sm" id="topupBtn">💰 รายการเติมเงิน</button>
       <button class="btn btn-ghost btn-sm" id="refreshBtn">↻ รีเฟรช</button>
     </div>
 
+=======
+      <button class="btn btn-ghost btn-sm" id="refreshBtn">↻ รีเฟรช</button>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="filter-tabs" id="filterTabs">
+      <button class="ftab active" data-status="ALL">ทั้งหมด</button>
+      <button class="ftab" data-status="NEW">รอเช็คราคา</button>
+      <button class="ftab" data-status="QUOTED">แจ้งราคาแล้ว</button>
+      <button class="ftab" data-status="PAID">ชำระเงินแล้ว</button>
+      <button class="ftab" data-status="ORDERED">สั่งร้านจีน</button>
+      <button class="ftab" data-status="SHIPPED">กำลังส่ง</button>
+      <button class="ftab" data-status="DONE">สำเร็จ</button>
+      <button class="ftab" data-status="CANCELLED">ยกเลิก</button>
+    </div>
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 
     <!-- SHIPPING QUICK EDIT -->
     <div class="ship-jump">
@@ -529,7 +646,10 @@ body{font-variant-numeric:tabular-nums}
   <div class="modal" style="max-width:920px">
     <div class="modal-head">
       <h3>✏️ อัปเดตออเดอร์ <span id="editModalNo" style="font-family:'Playfair Display',serif;font-style:italic"></span></h3>
+<<<<<<< HEAD
       <span id="saveBillHint" style="display:none;background:#dc2626;color:#fff;border-radius:999px;padding:6px 16px;font-size:13px;font-weight:800;white-space:nowrap;margin-right:12px;box-shadow:0 2px 8px rgba(220,38,38,.4)">💾 กรุณากดบันทึกก่อนออกบิล</span>
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
       <button class="modal-close" id="editModalClose">✕</button>
     </div>
     <div class="modal-body">
@@ -540,6 +660,7 @@ body{font-variant-numeric:tabular-nums}
           <div class="field">
             <label>สถานะ</label>
             <select id="editStatus">
+<<<<<<< HEAD
               <option value="NEW">NEW — กำลังตรวจสอบ</option>
               <option value="QUOTED">QUOTED — รอชำระเงิน</option>
               <option value="PAID">PAID — รอเลขขนส่งจีน</option>
@@ -562,12 +683,33 @@ body{font-variant-numeric:tabular-nums}
           <div class="field" id="oveSlipBox" style="display:none">
             <label>📎 สลิปการชำระเงินจากลูกค้า</label>
             <div id="oveSlipImg"></div>
+=======
+              <option value="NEW">NEW — รอเช็คราคา</option>
+              <option value="QUOTED">QUOTED — แจ้งราคาแล้ว รอชำระเงิน</option>
+              <option value="PAID">PAID — ชำระเงินแล้ว</option>
+              <option value="ORDERED">ORDERED — สั่งซื้อกับร้านจีนแล้ว</option>
+              <option value="SHIPPED">SHIPPED — กำลังจัดส่ง</option>
+              <option value="DONE">DONE — สำเร็จ</option>
+              <option value="CANCELLED">CANCELLED — ยกเลิก</option>
+            </select>
+          </div>
+          <div class="price-row">
+            <div class="field">
+              <label>ราคาสินค้า (฿)</label>
+              <input type="number" id="editTotal" placeholder="เช่น 1200" min="0"/>
+            </div>
+            <div class="field">
+              <label>ค่าขนส่ง (฿)</label>
+              <input type="number" id="editShipping" placeholder="เช่น 350" min="0"/>
+            </div>
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
           </div>
           <div class="field">
             <label>หมายเหตุจากแอดมิน <span style="font-weight:400;color:var(--ink-xsoft)">(ลูกค้าจะเห็น)</span></label>
             <textarea id="editAdminNote" placeholder="เช่น: สินค้าหมดสต็อก / ETA 3-5 วัน / กรุณาโอนภายใน 24 ชม."></textarea>
             <div class="field-note">ข้อความนี้จะปรากฏเมื่อลูกค้าตรวจสอบสถานะ</div>
           </div>
+<<<<<<< HEAD
 
           <!-- 🧾 บิลค่าขนส่ง (แสดงเมื่อสั่งซื้อสำเร็จ DONE) -->
           <div id="doneBill" style="display:none;border:1.5px solid var(--brand-100);border-radius:12px;padding:14px;margin-top:12px;background:var(--brand-50)">
@@ -595,6 +737,8 @@ body{font-variant-numeric:tabular-nums}
             <div class="field-note" style="margin:6px 0 8px">ส่วนลด แก้ที่ช่อง "ส่วนลด" ด้านล่าง</div>
             <div id="doneBillSum" style="background:#fff;border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px"></div>
           </div>
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
         </div>
 
         <!-- RIGHT: ข้อมูลลูกค้า (แก้ไขได้) -->
@@ -604,6 +748,7 @@ body{font-variant-numeric:tabular-nums}
             <button type="button" id="custLockBtn" class="btn btn-ghost btn-xs">🔒 ล็อกอยู่</button>
           </div>
           <div class="price-row">
+<<<<<<< HEAD
             <div class="field" style="display:none"><label>ชื่อลูกค้า</label><input type="text" id="editCustName" placeholder="ชื่อ-นามสกุล" readonly/></div>
             <div class="field"><label>LINE ID</label><input type="text" id="editCustLine" placeholder="@line หรือ id" readonly/></div>
           </div>
@@ -618,10 +763,27 @@ body{font-variant-numeric:tabular-nums}
           <div class="field" style="display:none">
             <label>หมายเหตุจากลูกค้า</label>
             <textarea id="editCustNote" readonly></textarea>
+=======
+            <div class="field"><label>ชื่อลูกค้า</label><input type="text" id="editCustName" placeholder="ชื่อ-นามสกุล" readonly/></div>
+            <div class="field"><label>LINE ID</label><input type="text" id="editCustLine" placeholder="@line หรือ id" readonly/></div>
+          </div>
+          <div class="price-row">
+            <div class="field"><label>เบอร์โทร</label><input type="text" id="editCustPhone" placeholder="08x-xxx-xxxx" readonly/></div>
+            <div class="field"><label>อีเมล</label><input type="text" id="editCustEmail" placeholder="email@example.com" readonly/></div>
+          </div>
+          <div class="field">
+            <label>📍 ที่อยู่จัดส่ง</label>
+            <textarea id="editCustAddr" placeholder="ที่อยู่จัดส่งของลูกค้า" readonly></textarea>
+          </div>
+          <div class="field">
+            <label>หมายเหตุจากลูกค้า</label>
+            <textarea id="editCustNote" placeholder="รายละเอียดที่ลูกค้าแจ้งมา" readonly></textarea>
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
           </div>
         </div>
       </div>
 
+<<<<<<< HEAD
       <!-- 📦 รายการสินค้า (อ่านอย่างเดียว) -->
       <div style="border-top:1px solid var(--border-soft);margin:14px 0 14px"></div>
       <div class="edit-group-title">📦 รายการสินค้าที่ลูกค้าสั่ง</div>
@@ -719,6 +881,38 @@ body{font-variant-numeric:tabular-nums}
       <button class="btn btn-primary" id="confirmArrivedCN" type="button" style="margin-right:auto;background:#0ea5e9;border-color:#0ea5e9;display:none">✅ ยืนยันสินค้าถึงโกดังจีนแล้ว</button>
       <button class="btn btn-primary" id="confirmArrivedTH" type="button" style="margin-right:auto;background:#16a34a;border-color:#16a34a;display:none">🏭 ยืนยันถึงโกดังไทย</button>
       <button class="btn btn-primary" id="goToBill" type="button" style="margin-right:auto;background:#7c3aed;border-color:#7c3aed;display:none">🧾 ไปที่บิล (ออกบิลค่าขนส่ง)</button>
+=======
+      <!-- 🚚 SHIPPING TRACKING -->
+      <div style="border-top:1px solid var(--border-soft);margin:6px 0 18px"></div>
+      <div class="field">
+        <label>🚚 สถานะการขนส่งปัจจุบัน <span style="font-weight:400;color:var(--ink-xsoft)">(กดเลือกสเต็ป หรือเลือกจากเมนู — ลูกค้าจะเห็น)</span></label>
+        <div class="ship-stepper" id="shipStepper"></div>
+        <select id="editShipStatus">
+          <option value="PENDING">รอจัดส่ง</option>
+          <option value="CN_WH">เข้าโกดังจีน</option>
+          <option value="CN_OUT">ออกจากจีน (ขนส่งระหว่างประเทศ)</option>
+          <option value="TH_IN">ถึงไทย / ผ่านศุลกากร</option>
+          <option value="TH_WH">ถึงโกดังไทย คัดแยกพัสดุ</option>
+          <option value="DELIVERING">กำลังนำส่งถึงผู้รับ</option>
+          <option value="DELIVERED">จัดส่งสำเร็จ</option>
+        </select>
+      </div>
+      <div class="price-row">
+        <div class="field" style="margin-bottom:10px">
+          <label>สถานที่ / จุดคัดแยก</label>
+          <input type="text" id="shipLocation" placeholder="เช่น Guangzhou, โกดังไทย"/>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label>รายละเอียดเพิ่มเติม</label>
+          <input type="text" id="shipNote" placeholder="เช่น ถึงโกดัง รอส่งออก"/>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm w-full" id="addShipUpdate" type="button">➕ เพิ่มอัปเดตการขนส่ง</button>
+      <div class="field-note">กด “เพิ่มอัปเดตการขนส่ง” เพื่อบันทึกว่าพัสดุไปถึงจุดใดแล้ว — ลูกค้าจะเห็นไทม์ไลน์นี้ทันที</div>
+      <div id="shipTimeline" style="margin-top:14px"></div>
+    </div>
+    <div class="modal-footer">
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
       <button class="btn btn-ghost" id="editCancel">ยกเลิก</button>
       <button class="btn btn-primary" id="editSave">💾 บันทึก</button>
     </div>
@@ -742,6 +936,7 @@ body{font-variant-numeric:tabular-nums}
   </div>
 </div>
 
+<<<<<<< HEAD
 <!-- ════ TOPUP MODAL ════ -->
 <div class="modal-overlay" id="topupModal">
   <div class="modal" style="max-width:760px">
@@ -753,6 +948,8 @@ body{font-variant-numeric:tabular-nums}
   </div>
 </div>
 
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -762,6 +959,7 @@ body{font-variant-numeric:tabular-nums}
    ============================================================ */
 const API_BASE = '';  // ← เปลี่ยนเป็น URL Vercel ของคุณ เช่น 'https://oversea.vercel.app'
 const PAGE_SIZE = 20;
+<<<<<<< HEAD
 let RMB_RATE = 5.2;   // เรทฝากสั่งสินค้า + จ่ายเงิน
 let PAY_RATE = 5.2;   // เรทฝากจ่ายเงิน (OVE)
 /* โหลดเรทล่าสุดจาก server ทันทีตอนเปิดหน้า */
@@ -777,6 +975,13 @@ const SP = {
   NEW:'กำลังตรวจสอบ', QUOTED:'รอชำระเงิน',
   PAID:'รอเลขขนส่งจีน', ORDERED:'รอสินค้าเข้าโกดังจีน',
   SHIPPED:'สินค้าถึงโกดังจีน/กำลังขนส่ง', DONE:'ถึงโกดังไทย', CANCELLED:'ยกเลิก'
+=======
+
+const SP = {
+  NEW:'รอเช็คราคา', QUOTED:'แจ้งราคาแล้ว รอชำระเงิน',
+  PAID:'ชำระเงินแล้ว', ORDERED:'สั่งซื้อกับร้านจีนแล้ว',
+  SHIPPED:'กำลังจัดส่ง', DONE:'สำเร็จ', CANCELLED:'ยกเลิก'
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 };
 
 /* สถานะการขนส่ง (shipping tracking) */
@@ -826,7 +1031,10 @@ $('loginBtn').addEventListener('click', () => {
   const k = $('keyInput').value.trim();
   if (!k) { $('loginErr').textContent = 'กรุณาใส่ Admin Key'; $('loginErr').style.display='block'; return; }
   adminKey = k;
+<<<<<<< HEAD
   try{ sessionStorage.setItem('opg_admin_key', k); }catch(e){}
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
   $('loginErr').style.display = 'none';
   loadOrders(0);
 });
@@ -837,6 +1045,7 @@ $('logoutBtn').addEventListener('click', () => {
   $('keyInput').value = '';
 });
 
+<<<<<<< HEAD
 /* บันทึกเรท RMB → THB */
 $('rmbRateSaveBtn')?.addEventListener('click', async () => {
   const v = Number($('rmbRateInput').value), p = Number($('payRateInput').value);
@@ -857,6 +1066,8 @@ $('rmbRateSaveBtn')?.addEventListener('click', async () => {
   finally{ btn.disabled=false; }
 });
 
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 /* ============================================================
    FETCH ORDERS
    ============================================================ */
@@ -927,6 +1138,7 @@ async function deleteOrderAdmin(no) {
   }
 }
 
+<<<<<<< HEAD
 /* ตรวจสอบผ่าน → เลื่อนสถานะออเดอร์ไป "รอชำระเงิน" (QUOTED) */
 async function approveOrder(no) {
   if (!confirm(`ยืนยันว่าออเดอร์ ${no} ตรวจสอบผ่านแล้ว?\nสถานะจะเปลี่ยนเป็น "รอชำระเงิน"`)) return;
@@ -948,10 +1160,13 @@ async function approveOrder(no) {
   }
 }
 
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 /* ============================================================
    STATS
    ============================================================ */
 function updateStats() {
+<<<<<<< HEAD
   const counts = { NEW:0, QUOTED:0, PAID:0, ORDERED:0, SHIPPED:0, DONE:0, INTRANSIT:0, BILLREVIEW:0, BILLWAIT:0, BILLPAY:0, PREP:0, SHIPPEDTH:0, DELIVERED:0, IMPORT:0, PAYDEPOSIT:0 };
   const BILL_FLOW = ['REVIEW','AWAIT_PAY','SLIP','PAID','SHIPPED','DELIVERED'];
   allOrders.forEach(o => {
@@ -1003,6 +1218,15 @@ async function markDelivered(no){
     syncLocalOrder(d.order);
     toast('🎉 จัดส่งเรียบร้อยแล้ว');
   }catch(e){ toast('❌ '+e.message, 4000); }
+=======
+  $('statTotal').textContent = totalOrders;
+  const counts = { NEW:0, QUOTED:0, PAID:0, SHIPPED:0 };
+  allOrders.forEach(o => { if(counts[o.status] !== undefined) counts[o.status]++; });
+  $('statNew').textContent     = counts.NEW;
+  $('statQuoted').textContent  = counts.QUOTED;
+  $('statPaid').textContent    = counts.PAID;
+  $('statShipped').textContent = counts.SHIPPED;
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 }
 
 /* ============================================================
@@ -1010,6 +1234,7 @@ async function markDelivered(no){
    ============================================================ */
 function applyFilter() {
   let list = [...allOrders];
+<<<<<<< HEAD
   /* ออเดอร์นำเข้าไหลรวมกับสถานะปกติ — แท็บ "นำเข้า" เป็นแค่ตัวกรองดูข้ามสถานะ ไม่ได้แยกออกจากระบบ */
   if (filterStatus === 'IMPORT') list = list.filter(o => o.kind === 'import');
   else if (filterStatus === 'PAYDEPOSIT') list = list.filter(o => o.source === 'pay');
@@ -1022,6 +1247,9 @@ function applyFilter() {
   else if (filterStatus === 'SHIPPEDTH') list = list.filter(o => o.billStatus === 'SHIPPED');
   else if (filterStatus === 'DELIVERED') list = list.filter(o => o.billStatus === 'DELIVERED');
   else if (filterStatus !== 'ALL') list = list.filter(o => o.status === filterStatus);
+=======
+  if (filterStatus !== 'ALL') list = list.filter(o => o.status === filterStatus);
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     list = list.filter(o =>
@@ -1036,6 +1264,7 @@ function applyFilter() {
 }
 
 /* filter tab click */
+<<<<<<< HEAD
 function setFilterStatus(s){
   filterStatus = s;
   document.querySelectorAll('.ftab').forEach(b => b.classList.toggle('active', b.dataset.status===s));
@@ -1046,6 +1275,16 @@ function setFilterStatus(s){
 document.querySelectorAll('.ftab').forEach(btn => btn.addEventListener('click', () => setFilterStatus(btn.dataset.status)));
 document.querySelectorAll('.stat-card[data-stat]').forEach(c => c.addEventListener('click', () => setFilterStatus(c.dataset.stat)));
 $('payDepositBtn')?.addEventListener('click', () => setFilterStatus('PAYDEPOSIT'));
+=======
+document.querySelectorAll('.ftab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterStatus = btn.dataset.status;
+    applyFilter();
+  });
+});
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 
 /* search */
 let searchTimer;
@@ -1082,14 +1321,20 @@ function renderTable() {
     const priceHtml = total || ship
       ? `<span>${sum.toLocaleString()} ฿</span><small>${total?total.toLocaleString()+'฿ + ':''}${ship?ship.toLocaleString()+'฿ ส่ง':''}</small>`
       : `<span style="color:var(--ink-xsoft)">—</span>`;
+<<<<<<< HEAD
     return `<tr${o.billGroup?' style="background:#eff6ff;box-shadow:inset 3px 0 0 #0ea5e9"':''}>
       <td data-label="เลขออเดอร์"><span class="order-no">${o.orderNo}</span>${o.kind==='import'?`<div style="margin-top:3px"><span style="background:#dbeafe;color:#1d4ed8;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700" title="ลูกค้าส่งของเข้าโกดังเอง">📥 นำเข้า</span></div>`:''}${o.source==='pay'?`<div style="margin-top:3px"><span style="background:#dcfce7;color:#15803d;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700" title="ลูกค้าวางลิงก์ผ่านหน้าฝากจ่ายเงิน">💴 ฝากจ่ายเงิน</span></div>`:''}${o.payReview?`<div style="margin-top:3px"><span style="background:#fef3c7;color:#b45309;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700" title="ลูกค้าแนบสลิปแล้ว รอตรวจสอบ">⏳ รอตรวจสลิป</span></div>`:''}${o.billGroup?`<div style="margin-top:3px"><span style="background:#e0f2fe;color:#0369a1;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700" title="อยู่ในกลุ่มรวมบิล — คิดค่าส่งรวม">🔗 ${o.billGroup}</span></div>`:''}</td>
+=======
+    return `<tr>
+      <td data-label="เลขออเดอร์"><span class="order-no">${o.orderNo}</span></td>
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
       <td data-label="ลูกค้า">
         <div class="customer-name">${o.customer?.name || '—'}</div>
         <div class="customer-line">LINE: ${o.customer?.lineId || '—'}</div>
       </td>
       <td data-label="สินค้า"><span class="items-count">📦 ${(o.items||[]).length} รายการ</span></td>
       <td data-label="ราคา"><div class="price-cell">${priceHtml}</div></td>
+<<<<<<< HEAD
       <td data-label="สถานะ">${o.payReview ? '<span class="sp" style="background:#fef3c7;color:#b45309">● รอตรวจสลิป</span>' : statusPill(o.status, o.statusText)}</td>
       <td data-label="วันที่"><div class="date-cell">${formatDate(o.createdAt)}</div></td>
       <td data-label="จัดการ">
@@ -1102,6 +1347,15 @@ function renderTable() {
           ${o.billStatus==='SHIPPED' ? `<button class="btn btn-icon" data-action="delivered" data-no="${o.orderNo}" title="จัดส่งเรียบร้อย" style="background:#16a34a;color:#fff;border-color:#16a34a">✅ จัดส่งเรียบร้อย</button>` : ''}
           ${o.status==='NEW' ? `<button class="btn btn-approve" data-action="approve" data-no="${o.orderNo}" title="ตรวจสอบผ่าน → รอชำระเงิน">✅ อนุมัติ</button>` : ''}
           <button class="btn btn-danger btn-icon" data-action="delete" data-no="${o.orderNo}" title="ลบ">🗑</button>
+=======
+      <td data-label="สถานะ">${statusPill(o.status, o.statusText)}</td>
+      <td data-label="วันที่"><div class="date-cell">${formatDate(o.createdAt)}</div></td>
+      <td data-label="จัดการ">
+        <div class="actions-cell">
+          <button class="btn btn-ghost btn-xs" data-action="detail" data-no="${o.orderNo}">📋 ดู</button>
+          <button class="btn btn-primary btn-xs" data-action="edit" data-no="${o.orderNo}">✏️ แก้ไข</button>
+          <button class="btn btn-danger btn-xs" data-action="delete" data-no="${o.orderNo}">🗑 ลบ</button>
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
         </div>
       </td>
     </tr>`;
@@ -1123,6 +1377,7 @@ function renderTable() {
     b.addEventListener('click', () => openDetail(b.dataset.no)));
   wrap.querySelectorAll('[data-action="edit"]').forEach(b =>
     b.addEventListener('click', () => openEdit(b.dataset.no)));
+<<<<<<< HEAD
   wrap.querySelectorAll('[data-action="review"]').forEach(b =>
     b.addEventListener('click', () => { try{ sessionStorage.setItem('opg_admin_key', adminKey); }catch(e){} window.open(`/bill-review.html?no=${encodeURIComponent(b.dataset.no)}`, '_blank'); }));
   wrap.querySelectorAll('[data-action="payment"]').forEach(b =>
@@ -1135,6 +1390,10 @@ function renderTable() {
     b.addEventListener('click', () => deleteOrderAdmin(b.dataset.no)));
   wrap.querySelectorAll('[data-action="approve"]').forEach(b =>
     b.addEventListener('click', () => approveOrder(b.dataset.no)));
+=======
+  wrap.querySelectorAll('[data-action="delete"]').forEach(b =>
+    b.addEventListener('click', () => deleteOrderAdmin(b.dataset.no)));
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 
   /* pagination */
   const pg = $('paginationWrap');
@@ -1155,6 +1414,7 @@ function openDetail(no) {
   if (!o) return;
   editingOrder = o;
 
+<<<<<<< HEAD
   const items = (o.items||[]).map((it,i) => {
     const meta = [it.shop?`ร้าน: ${it.shop}`:'', it.color?`สี: ${it.color}`:'', it.size?`ไซต์: ${it.size}`:'', it.priceRmb?`RMB ${it.priceRmb}`:'', `จำนวน ${it.qty}`].filter(Boolean).join(' · ');
     return `
@@ -1167,6 +1427,17 @@ function openDetail(no) {
         <div class="meta">${meta}${it.note?` · 📝 ${it.note}`:''}</div>
       </div>
     </div>`; }).join('');
+=======
+  const items = (o.items||[]).map((it,i) => `
+    <div class="item-row">
+      <span class="item-num">${i+1}</span>
+      <div class="item-info">
+        ${platBadge(it.plat)}
+        <a href="${it.url}" target="_blank" rel="noopener">${it.url.slice(0,80)}${it.url.length>80?'…':''}</a>
+        <div class="meta">จำนวน: ${it.qty}${it.note?` · ${it.note}`:''}</div>
+      </div>
+    </div>`).join('');
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 
   const total   = parseFloat(o.total)||0;
   const ship    = parseFloat(o.shipping)||0;
@@ -1204,7 +1475,11 @@ $('detailModal').addEventListener('click', e => { if(e.target.id==='detailModal'
    EDIT MODAL
    ============================================================ */
 /* ── ล็อก/ปลดล็อก ข้อมูลลูกค้า (กันแก้พลาด) ── */
+<<<<<<< HEAD
 const CUST_FIELDS = ['editCustName','editCustLine','editCustPhone','editCustEmail','editCustNote'];
+=======
+const CUST_FIELDS = ['editCustName','editCustLine','editCustPhone','editCustEmail','editCustAddr','editCustNote'];
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 function setCustLock(locked) {
   CUST_FIELDS.forEach(id => { const el = $(id); if (el) el.readOnly = locked; });
   const btn = $('custLockBtn');
@@ -1235,6 +1510,7 @@ function renderShipStepper(current) {
     renderShipStepper(el.dataset.step);
   }));
 }
+<<<<<<< HEAD
 $('editShipStatus')?.addEventListener('change', () => renderShipStepper($('editShipStatus').value));
 /* สลับการแสดงช่องตามสถานะ:
    - PAID ขึ้นไป  → แสดงช่อง Tracking, ซ่อนเครื่องคำนวณค่าขนส่ง/ตีลังไม้
@@ -1345,12 +1621,17 @@ function applyStatusOptions(cur){
   if(cur==='CANCELLED') STATUS_FLOW.forEach(s=>allowed.add(s));     // ยกเลิกแล้วกู้คืนได้
   [...sel.options].forEach(op=>{ op.disabled = !allowed.has(op.value); });
 }
+=======
+$('editShipStatus').addEventListener('change', () => renderShipStepper($('editShipStatus').value));
+
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 function openEdit(no) {
   const o = allOrders.find(x => x.orderNo === no);
   if (!o) return;
   editingOrder = o;
   $('editModalNo').textContent = no;
   $('editStatus').value     = o.status || 'NEW';
+<<<<<<< HEAD
   applyStatusOptions(o.status || 'NEW');
   /* ราคาสินค้า: ถ้าแอดมินยังไม่เคยใส่ → เติมยอดรวมจากสินค้า (RMB × เรท) ให้อัตโนมัติ */
   let total = o.total;
@@ -1429,10 +1710,16 @@ function openEdit(no) {
   $('editDiscount').value   = o.discount || '';
   calcGrand();
   toggleCrateCalc(); renderCrateCalc();
+=======
+  $('editTotal').value      = o.total || '';
+  $('editShipping').value   = o.shipping || '';
+  $('editAdminNote').value  = o.adminNote || '';
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
   $('editCustName').value   = o.customer?.name   || '';
   $('editCustLine').value   = o.customer?.lineId || '';
   $('editCustPhone').value  = o.customer?.phone  || '';
   $('editCustEmail').value  = o.customer?.email  || '';
+<<<<<<< HEAD
   $('editCustNote').value   = ((o.note||'').split('·').map(s=>s.trim()).find(s=>s.startsWith('หมายเหตุ:'))||'').replace(/^หมายเหตุ:\s*/,'') || (/(จัดส่ง|ตีลังไม้|QC):/.test(o.note||'')?'':(o.note||''));
   setCustLock(true);
   $('editTrackingNo').value   = o.trackingNo   || '';
@@ -1564,6 +1851,18 @@ function renderEditItems(o) {
     </div>`;
   }).join('');
 }
+=======
+  $('editCustAddr').value   = o.customer?.address?.detail || '';
+  $('editCustNote').value   = o.note || '';
+  setCustLock(true);
+  $('editShipStatus').value = o.shipStatus || 'PENDING';
+  renderShipStepper(o.shipStatus || 'PENDING');
+  $('shipLocation').value   = '';
+  $('shipNote').value       = '';
+  renderShipTimeline(o);
+  $('editModal').classList.add('open');
+}
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 $('editModalClose').addEventListener('click', () => $('editModal').classList.remove('open'));
 $('editCancel').addEventListener('click',    () => $('editModal').classList.remove('open'));
 $('editModal').addEventListener('click', e => { if(e.target.id==='editModal') $('editModal').classList.remove('open'); });
@@ -1579,6 +1878,7 @@ $('editSave').addEventListener('click', async () => {
   const btn = $('editSave');
   btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
 
+<<<<<<< HEAD
   /* ออเดอร์ "รอเลขขนส่งจีน" (PAID) เมื่อกรอกเลข Tracking → เลื่อนเป็น "รอสินค้าเข้าโกดังจีน" (ORDERED) อัตโนมัติ */
   let _status = $('editStatus').value;
   const isPay = (editingOrder.source==='pay');
@@ -1623,11 +1923,28 @@ $('editSave').addEventListener('click', async () => {
     qcFee:      Number($('editQcFee').value)||0,
     taxPct:     Number($('editTaxPct').value)||0,
     thShipFee:  0,
+=======
+  const patch = {
+    status:     $('editStatus').value,
+    total:      $('editTotal').value,
+    shipping:   $('editShipping').value,
+    adminNote:  $('editAdminNote').value.trim(),
+    shipStatus: $('editShipStatus').value,
+    note:       $('editCustNote').value.trim(),
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
     customer: {
       name:   $('editCustName').value.trim(),
       lineId: $('editCustLine').value.trim(),
       phone:  $('editCustPhone').value.trim(),
       email:  $('editCustEmail').value.trim(),
+<<<<<<< HEAD
+=======
+      address: {
+        recipient: $('editCustName').value.trim(),
+        phone:     $('editCustPhone').value.trim(),
+        detail:    $('editCustAddr').value.trim(),
+      },
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
     },
   };
 
@@ -1665,7 +1982,11 @@ function syncLocalOrder(order){
 }
 
 function renderShipTimeline(o){
+<<<<<<< HEAD
   const wrap = $('shipTimeline'); if (!wrap) return;
+=======
+  const wrap = $('shipTimeline');
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
   const list = Array.isArray(o.tracking) ? o.tracking : [];
   if (!list.length){ wrap.innerHTML = `<div class="ship-tl-empty">ยังไม่มีอัปเดตการขนส่ง</div>`; return; }
   /* แสดงล่าสุดอยู่บนสุด */
@@ -1684,7 +2005,11 @@ function renderShipTimeline(o){
   wrap.querySelectorAll('.del').forEach(b => b.addEventListener('click', () => deleteShipUpdate(Number(b.dataset.idx))));
 }
 
+<<<<<<< HEAD
 $('addShipUpdate')?.addEventListener('click', async () => {
+=======
+$('addShipUpdate').addEventListener('click', async () => {
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
   if (!editingOrder) return;
   const entry = {
     step:     $('editShipStatus').value,
@@ -1753,6 +2078,7 @@ async function jumpToOrder(){
 }
 $('jumpBtn').addEventListener('click', jumpToOrder);
 $('jumpInput').addEventListener('keydown', e => { if(e.key==='Enter') jumpToOrder(); });
+<<<<<<< HEAD
 
 /* ============================================================
    รายการเติมเงิน (Top-up review)
@@ -1830,6 +2156,8 @@ async function actTopup(id, action){
   }catch(err){ toast(`❌ ${err.message}`, 4000); }
 }
 
+=======
+>>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 </script>
 </body>
 </html>

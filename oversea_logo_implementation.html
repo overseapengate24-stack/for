@@ -1,0 +1,39 @@
+<!-- OVERSEA PenGate Logo - Navigation Header Implementation -->
+
+<!-- Simple HTML -->
+<div class="navbar-logo">
+  <img src="/images/oversea_logo_header.svg" alt="OVERSEA PenGate" class="logo">
+</div>
+
+<!-- CSS Styling -->
+<style>
+  .navbar-logo {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    padding: 0 20px;
+  }
+
+  .navbar-logo .logo {
+    height: 50px;
+    width: auto;
+    display: block;
+  }
+
+  .navbar-logo .logo:hover {
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+  }
+
+  /* For responsive design */
+  @media (max-width: 768px) {
+    .navbar-logo .logo {
+      height: 40px;
+    }
+  }
+</style>
+
+<!-- Alternative: As a Link (if logo is clickable to home) -->
+<a href="/" class="navbar-logo">
+  <img src="/images/oversea_logo_header.svg" alt="OVERSEA PenGate" class="logo">
+</a>
