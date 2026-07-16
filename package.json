@@ -2,13 +2,9 @@
   "name": "oversea-pengate",
   "version": "1.0.0",
   "private": true,
-<<<<<<< HEAD
   "type": "module",
   "dependencies": {
     "docx": "^9.7.1",
     "nodemailer": "^6.10.1"
   }
-=======
-  "type": "module"
->>>>>>> 5deb8438859c97d462e5fbb38894ef424692fe99
 }
