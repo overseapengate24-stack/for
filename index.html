@@ -1074,6 +1074,26 @@ body{font-variant-numeric:tabular-nums}
   </div>
 </div>
 
+<!-- ID VERIFY MODAL — กรอกเลขบัตร ปชช. / พาสปอร์ต หลังล็อกอินครั้งแรก -->
+<div id="idModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card">
+    <button class="modal-x" id="idModalClose" type="button" aria-label="ปิด">✕</button>
+    <h3>ยืนยันตัวตนก่อนเริ่มสั่งซื้อ</h3>
+    <p class="sub">กรุณากรอกเลขบัตรประชาชน 13 หลัก หรือเลขพาสปอร์ต<br>เพื่อใช้ในพิธีการศุลกากรนำเข้าสินค้า</p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px">
+      <button class="btn btn-sm id-type-btn" id="idTypeThai" type="button" data-type="thai">บัตรประชาชน</button>
+      <button class="btn btn-sm id-type-btn" id="idTypePassport" type="button" data-type="passport">พาสปอร์ต</button>
+    </div>
+    <input id="idNumberInput" type="text" inputmode="numeric" maxlength="17" placeholder="เลขบัตรประชาชน 13 หลัก"
+           style="width:100%;max-width:320px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:16px;text-align:center;letter-spacing:1px" />
+    <div class="modal-help" id="idModalHelp" style="min-height:20px;margin-top:8px"></div>
+    <div style="margin-top:12px">
+      <button class="btn btn-primary" id="idSaveBtn" type="button" style="min-width:200px">บันทึกและเริ่มใช้งาน</button>
+    </div>
+    <div class="modal-help" style="margin-top:12px;font-size:12px">ข้อมูลถูกเก็บอย่างปลอดภัย ใช้เพื่อการนำเข้าสินค้าเท่านั้น</div>
+  </div>
+</div>
+
 <!-- HEADER -->
 <header class="site">
   <div class="wrap nav">
@@ -1817,6 +1837,7 @@ function setLoggedIn(user){
   updatePreview();
   renderMyOrders();
   loadAddress();
+  setTimeout(()=>{ try{ checkProfile(); }catch(e){} }, 0); // เช็คเลขบัตร ปชช./พาสปอร์ต หลังล็อกอิน
   if(location.hash === '#addresses' && typeof openAddrPage === 'function') openAddrPage();
 }
 
@@ -1869,6 +1890,105 @@ function initGoogle(tries=0){
 window.addEventListener('load', ()=>initGoogle());
 $('#logoutBtn').addEventListener('click', doLogout);
 $('#trackLoginBtn')?.addEventListener('click', openLoginModal);
+
+/* ============================================================
+   ID VERIFY — บังคับกรอกเลขบัตร ปชช. 13 หลัก หรือพาสปอร์ต หลังล็อกอิน
+   ============================================================ */
+let profileOk = false;
+let currentIdType = 'thai';
+
+function validThaiIdClient(id){
+  if(!/^\d{13}$/.test(id)) return false;
+  let sum = 0;
+  for(let i=0;i<12;i++) sum += Number(id[i])*(13-i);
+  return (11-(sum%11))%10 === Number(id[12]);
+}
+function validPassportClient(no){ return /^[A-Za-z0-9]{6,12}$/.test(no); }
+
+function openIdModal(){ const m=$('#idModal'); m.classList.add('open'); m.setAttribute('aria-hidden','false'); setIdType(currentIdType); }
+function closeIdModal(){ const m=$('#idModal'); m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }
+
+function setIdType(t){
+  currentIdType = t;
+  const inp = $('#idNumberInput');
+  const bT = $('#idTypeThai'), bP = $('#idTypePassport');
+  const on  = (b)=>{ b.classList.add('btn-primary'); b.classList.remove('btn-ghost'); };
+  const off = (b)=>{ b.classList.remove('btn-primary'); b.classList.add('btn-ghost'); };
+  if(t==='thai'){
+    on(bT); off(bP);
+    inp.placeholder = 'เลขบัตรประชาชน 13 หลัก';
+    inp.setAttribute('inputmode','numeric'); inp.maxLength = 13;
+  }else{
+    on(bP); off(bT);
+    inp.placeholder = 'เลขพาสปอร์ต (เช่น AA1234567)';
+    inp.setAttribute('inputmode','text'); inp.maxLength = 12;
+  }
+  inp.value = ''; $('#idModalHelp').textContent = '';
+  inp.focus();
+}
+
+const IDOK_KEY = (email)=> 'opg_idok_' + String(email||'').toLowerCase();
+
+async function checkProfile(){
+  if(!currentUser || !currentUser.email) return;
+  const email = currentUser.email.toLowerCase();
+  // แคชในเครื่องเพื่อไม่ให้ modal เด้งทุกครั้ง — แต่ยังยืนยันกับ server เบื้องหลัง
+  if(localStorage.getItem(IDOK_KEY(email)) === '1') profileOk = true;
+  try{
+    const r = await fetch('/api/address?email=' + encodeURIComponent(email) + '&profile=1');
+    const j = await r.json();
+    if(j && j.ok){
+      if(j.registered){
+        profileOk = true;
+        localStorage.setItem(IDOK_KEY(email), '1');
+      }else{
+        profileOk = false;
+        localStorage.removeItem(IDOK_KEY(email));
+        openIdModal();
+      }
+    }
+  }catch(e){ /* เน็ตหลุด — ใช้ค่าแคชไปก่อน เดี๋ยวเช็คซ้ำตอนกดสั่งซื้อ */ }
+}
+
+async function saveIdNumber(){
+  if(!currentUser || !currentUser.email){ closeIdModal(); openLoginModal(); return; }
+  const inp = $('#idNumberInput');
+  const help = $('#idModalHelp');
+  const val = inp.value.trim().toUpperCase();
+  if(currentIdType==='thai' && !validThaiIdClient(val)){
+    help.textContent = 'เลขบัตรประชาชนไม่ถูกต้อง กรุณาตรวจสอบให้ครบ 13 หลัก'; return;
+  }
+  if(currentIdType==='passport' && !validPassportClient(val)){
+    help.textContent = 'เลขพาสปอร์ตไม่ถูกต้อง (ตัวอักษร/ตัวเลข 6–12 หลัก)'; return;
+  }
+  const btn = $('#idSaveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+  try{
+    const r = await fetch('/api/address', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: currentUser.email.toLowerCase(), profile:{ idType: currentIdType, idNumber: val } })
+    });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'บันทึกไม่สำเร็จ');
+    profileOk = true;
+    localStorage.setItem(IDOK_KEY(currentUser.email.toLowerCase()), '1');
+    closeIdModal();
+    if(typeof flashAlert === 'function') flashAlert('✅ ยืนยันตัวตนเรียบร้อย เริ่มสั่งซื้อได้เลย');
+  }catch(err){
+    help.textContent = err.message || 'บันทึกไม่สำเร็จ กรุณาลองใหม่';
+  }
+  btn.disabled = false; btn.textContent = 'บันทึกและเริ่มใช้งาน';
+}
+
+$('#idTypeThai').addEventListener('click', ()=>setIdType('thai'));
+$('#idTypePassport').addEventListener('click', ()=>setIdType('passport'));
+$('#idSaveBtn').addEventListener('click', saveIdNumber);
+$('#idModalClose').addEventListener('click', closeIdModal);
+$('#idModal').addEventListener('click', (e)=>{ if(e.target.id==='idModal') closeIdModal(); });
+$('#idNumberInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') saveIdNumber(); });
+$('#idNumberInput').addEventListener('input', (e)=>{
+  if(currentIdType==='thai') e.target.value = e.target.value.replace(/\D/g,'').slice(0,13);
+});
 
 /* ============================================================
    DETECT PLATFORM — อัปเกรด รองรับ URL หลายรูปแบบ
@@ -2313,6 +2433,7 @@ $('#orderForm').addEventListener('submit', async (e)=>{
   const lineId = $('#lineId').value.trim();
   if(!lineId){ flashAlert('กรุณากรอกไอดี LINE หรือเบอร์โทร เพื่อให้ทีมงานติดต่อกลับ'); return; }
   if(!currentUser || !currentUser.email){ flashAlert('กรุณาเข้าสู่ระบบก่อนสร้างเลขออเดอร์'); openLoginModal(); return; }
+  if(!profileOk){ flashAlert('กรุณากรอกเลขบัตรประชาชน หรือเลขพาสปอร์ต ก่อนสั่งซื้อ'); openIdModal(); return; }
   const user = currentUser;
   const payload = { customer:{ name:user.name||'', email:user.email||'', lineId, phone:'' }, items, note:$('#orderNote').value.trim() };
   const btn = e.submitter; if(btn){ btn.disabled=true; btn.dataset.t=btn.textContent; btn.textContent='กำลังส่ง…'; }
