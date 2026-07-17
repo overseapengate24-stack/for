@@ -1085,7 +1085,13 @@ body{font-variant-numeric:tabular-nums}
       <input id="regIdInput" type="text" inputmode="numeric" maxlength="13" placeholder="เลขบัตรประชาชน 13 หลัก"
              style="width:100%;max-width:320px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:16px;text-align:center;letter-spacing:1px;margin-bottom:8px" />
       <input id="regEmailInput" type="email" maxlength="120" placeholder="อีเมล (ไม่บังคับ — ใช้รับแจ้งบิล)"
-             style="width:100%;max-width:320px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;text-align:center" />
+             style="width:100%;max-width:320px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;text-align:center;margin-bottom:8px" />
+      <label for="regIdPhoto" id="regIdPhotoLabel"
+             style="display:block;width:100%;max-width:320px;margin:0 auto;padding:12px 14px;border:1.5px dashed var(--brand,#9C8654);border-radius:10px;font-size:13.5px;color:var(--brand-600,#7C6739);cursor:pointer;background:var(--brand-50,#F6F0E1)">
+        📷 แนบรูปถ่ายบัตรประชาชน / หน้าพาสปอร์ต
+      </label>
+      <input id="regIdPhoto" type="file" accept="image/*" style="display:none" />
+      <img id="regIdPreview" alt="" style="display:none;max-width:200px;max-height:130px;border-radius:10px;margin:8px auto 0;border:1px solid var(--line,#ddd);object-fit:cover" />
       <div class="modal-help" id="regFormHelp" style="min-height:18px;margin-top:8px"></div>
       <div style="margin-top:8px"><button class="btn btn-primary" id="registerSubmitBtn" type="button" style="min-width:200px">สมัครสมาชิก</button></div>
       <div style="margin-top:14px;font-size:13px">มีบัญชีแล้ว? <a href="#" id="showLoginLink" style="color:var(--brand-600,#7C6739);font-weight:700">เข้าสู่ระบบ</a></div>
@@ -1882,6 +1888,26 @@ async function doLogin(){
   btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
 }
 
+/* ย่อรูปบัตรฝั่งเบราว์เซอร์ก่อนส่ง — ให้ไฟล์เล็กพอเก็บใน Redis */
+let regIdImage = '';
+function fileToResizedDataURL(file, maxW = 1000, quality = 0.75){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, maxW / img.width);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('อ่านไฟล์รูปไม่สำเร็จ')); };
+    img.src = url;
+  });
+}
+
 async function doRegister(){
   const help = $('#regFormHelp');
   const name = $('#regNameInput').value.trim();
@@ -1891,10 +1917,11 @@ async function doRegister(){
   if(regIdType==='thai' && !validThaiIdClient(id)){ help.textContent = 'เลขบัตรประชาชนไม่ถูกต้อง กรุณาตรวจสอบให้ครบ 13 หลัก'; return; }
   if(regIdType==='passport' && !validPassportClient(id)){ help.textContent = 'เลขพาสปอร์ตไม่ถูกต้อง (ตัวอักษร/ตัวเลข 6–12 หลัก)'; return; }
   if(email && !/^\S+@\S+\.\S+$/.test(email)){ help.textContent = 'รูปแบบอีเมลไม่ถูกต้อง'; return; }
+  if(!regIdImage){ help.textContent = 'กรุณาแนบรูปถ่ายบัตรประชาชน หรือหน้าพาสปอร์ต'; return; }
   const btn = $('#registerSubmitBtn');
   btn.disabled = true; btn.textContent = 'กำลังสมัคร…';
   try{
-    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ register:{ name, idType: regIdType, idNumber: id, email } }) });
+    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ register:{ name, idType: regIdType, idNumber: id, email, idImage: regIdImage } }) });
     const j = await r.json();
     if(!j.ok) throw new Error(j.error || 'สมัครไม่สำเร็จ');
     finishAuth(j.account);
@@ -1968,6 +1995,20 @@ $('#regTypeThai').addEventListener('click', ()=>setRegType('thai'));
 $('#regTypePassport').addEventListener('click', ()=>setRegType('passport'));
 $('#loginIdInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') doLogin(); });
 $('#regIdInput').addEventListener('input', (e)=>{ if(regIdType==='thai') e.target.value = e.target.value.replace(/\D/g,'').slice(0,13); });
+$('#regIdPhoto').addEventListener('change', async (e)=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  try{
+    regIdImage = await fileToResizedDataURL(f);
+    const pv = $('#regIdPreview');
+    pv.src = regIdImage; pv.style.display = 'block';
+    $('#regIdPhotoLabel').textContent = '✅ แนบรูปแล้ว — กดเพื่อเปลี่ยนรูป';
+    $('#regFormHelp').textContent = '';
+  }catch(err){
+    regIdImage = '';
+    $('#regFormHelp').textContent = err.message || 'อ่านไฟล์รูปไม่สำเร็จ กรุณาลองใหม่';
+  }
+});
 
 /* ============================================================
    ID VERIFY — บังคับกรอกเลขบัตร ปชช. 13 หลัก หรือพาสปอร์ต หลังล็อกอิน

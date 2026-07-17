@@ -6,7 +6,10 @@
  * POST /api/address  body:{ email, profile:{ idType:'thai'|'passport', idNumber } } → บันทึกเลขบัตร ปชช./พาสปอร์ต
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage } from '../lib/redis.js';
+
+const ADMIN_KEY_ENV = () => (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
+const isAdminReq = (req) => String(req.headers['x-admin-key'] || '').trim() === ADMIN_KEY_ENV();
 
 /* เลขบัตรประชาชนไทย 13 หลัก — ตรวจ checksum ตามสูตร mod 11 */
 function validThaiId(id) {
@@ -86,6 +89,28 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { email, address, profile, register, login } = req.body || {};
 
+    /* ── (แอดมิน) ขอรูปบัตรของสมาชิก ── */
+    if (req.body && req.body.adminGetIdImage) {
+      if (!isAdminReq(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
+      const idNumber = String(req.body.adminGetIdImage.idNumber || '').trim().toUpperCase();
+      if (!idNumber) return res.status(400).json({ ok: false, error: 'ระบุเลขบัตร' });
+      const image = await getAccountImage(idNumber);
+      return res.status(200).json({ ok: true, image: image || null });
+    }
+
+    /* ── (แอดมิน) อนุมัติ/ปฏิเสธการยืนยันตัวตนของสมาชิก ── */
+    if (req.body && req.body.verify) {
+      if (!isAdminReq(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
+      const idNumber = String(req.body.verify.idNumber || '').trim().toUpperCase();
+      const action = req.body.verify.action === 'approve' ? 'APPROVED' : 'REJECTED';
+      const acct = await getAccount(idNumber);
+      if (!acct) return res.status(404).json({ ok: false, error: 'ไม่พบสมาชิก' });
+      acct.verifyStatus = action;
+      acct.verifiedAt = new Date().toISOString();
+      await saveAccount(idNumber, acct);
+      return res.status(200).json({ ok: true, account: acct });
+    }
+
     /* ── เข้าสู่ระบบด้วยเลขบัตร ปชช./พาสปอร์ต ── */
     if (login) {
       const idNumber = String(login.idNumber || '').trim().toUpperCase();
@@ -110,11 +135,20 @@ export default async function handler(req, res) {
       if (rEmail && !/^\S+@\S+\.\S+$/.test(rEmail)) {
         return res.status(400).json({ ok: false, error: 'รูปแบบอีเมลไม่ถูกต้อง' });
       }
+      /* รูปถ่ายบัตร ปชช./พาสปอร์ต — บังคับแนบตอนสมัคร ให้แอดมินตรวจเทียบเลข */
+      const idImage = String(register.idImage || '');
+      if (!/^data:image\/(jpeg|png|webp);base64,/.test(idImage)) {
+        return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน หรือหน้าพาสปอร์ต' });
+      }
+      if (idImage.length > 900000) {
+        return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป กรุณาลองใหม่' });
+      }
       const existing = await getAccount(idNumber);
       if (existing) return res.status(409).json({ ok: false, error: 'เลขนี้มีบัญชีอยู่แล้ว — กรุณากดเข้าสู่ระบบ' });
       // ถ้าไม่ให้อีเมล ใช้อีเมลภายในจากเลขบัตรเป็น key ของออเดอร์/ที่อยู่แทน
       const acctEmail = rEmail || `id_${idNumber.toLowerCase()}@member.opg`;
-      const acct = { name, idType, idNumber, email: acctEmail, contactEmail: rEmail, createdAt: new Date().toISOString() };
+      const acct = { name, idType, idNumber, email: acctEmail, contactEmail: rEmail, verifyStatus: 'PENDING', createdAt: new Date().toISOString() };
+      await saveAccountImage(idNumber, idImage);
       await saveAccount(idNumber, acct);
       await saveUserProfile(acctEmail, { idType, idNumber, registeredAt: acct.createdAt });
       try { await addKnownUser(acctEmail); } catch (e2) {}
