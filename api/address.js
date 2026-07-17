@@ -6,7 +6,7 @@
  * POST /api/address  body:{ email, profile:{ idType:'thai'|'passport', idNumber } } → บันทึกเลขบัตร ปชช./พาสปอร์ต
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts } from '../lib/redis.js';
 
 /* เลขบัตรประชาชนไทย 13 หลัก — ตรวจ checksum ตามสูตร mod 11 */
 function validThaiId(id) {
@@ -45,6 +45,16 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method === 'GET') {
+    /* รายชื่อสมาชิกทั้งหมด (เฉพาะแอดมิน) */
+    if (req.query.members) {
+      const ADMIN_KEY = (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
+      if (String(req.headers['x-admin-key'] || '').trim() !== ADMIN_KEY) {
+        return res.status(401).json({ ok: false, error: 'unauthorized' });
+      }
+      const members = await listAccounts();
+      return res.status(200).json({ ok: true, members });
+    }
+
     const email = (req.query.email || '').trim().toLowerCase();
     if (!email) return res.status(400).json({ ok: false, error: 'ระบุ email' });
 

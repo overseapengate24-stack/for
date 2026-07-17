@@ -501,6 +501,7 @@ body{font-variant-numeric:tabular-nums}
         <span class="ico">🔍</span>
         <input type="text" id="searchInput" placeholder="ค้นหาออเดอร์ / ชื่อ / LINE…"/>
       </div>
+      <button class="btn btn-ghost btn-sm" id="membersBtn">🪪 สมาชิก</button>
       <button class="btn btn-ghost btn-sm" id="topupBtn">💰 รายการเติมเงิน</button>
       <button class="btn btn-ghost btn-sm" id="refreshBtn">↻ รีเฟรช</button>
     </div>
@@ -750,6 +751,17 @@ body{font-variant-numeric:tabular-nums}
       <button class="modal-close" id="topupClose">✕</button>
     </div>
     <div class="modal-body" id="topupBody"><div class="loading"><div class="spinner"></div> กำลังโหลด…</div></div>
+  </div>
+</div>
+
+<!-- ════ MEMBERS MODAL — รายชื่อสมาชิก + เลขบัตร ปชช./พาสปอร์ต ════ -->
+<div class="modal-overlay" id="membersModal">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-head">
+      <h3 id="membersTitle">🪪 สมาชิกทั้งหมด</h3>
+      <button class="modal-close" id="membersClose">✕</button>
+    </div>
+    <div class="modal-body" id="membersBody"><div class="loading"><div class="spinner"></div> กำลังโหลด…</div></div>
   </div>
 </div>
 
@@ -1829,6 +1841,94 @@ function renderTopups(){
   $('topupBody').querySelectorAll('[data-approve]').forEach(b=>b.addEventListener('click',()=>actTopup(b.dataset.approve,'approve')));
   $('topupBody').querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click',()=>actTopup(b.dataset.reject,'reject')));
 }
+/* ============================================================
+   สมาชิก — รายชื่อ + เลขบัตร ปชช./พาสปอร์ต → กดดูออเดอร์ของลูกค้า
+   ============================================================ */
+let membersCache = [];
+$('membersBtn').addEventListener('click', openMembers);
+$('membersClose').addEventListener('click', () => $('membersModal').classList.remove('open'));
+$('membersModal').addEventListener('click', e => { if(e.target.id==='membersModal') $('membersModal').classList.remove('open'); });
+
+async function openMembers(){
+  $('membersModal').classList.add('open');
+  $('membersTitle').textContent = '🪪 สมาชิกทั้งหมด';
+  $('membersBody').innerHTML = `<div class="loading"><div class="spinner"></div> กำลังโหลด…</div>`;
+  try{
+    const r = await fetch(`${API_BASE}/api/address?members=1`, { headers:{ 'x-admin-key': adminKey } });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'โหลดไม่สำเร็จ');
+    membersCache = j.members || [];
+    renderMembers();
+  }catch(err){ $('membersBody').innerHTML = `<div class="empty"><div class="ico">⚠️</div><p>${err.message}</p></div>`; }
+}
+
+function renderMembers(){
+  $('membersTitle').textContent = `🪪 สมาชิกทั้งหมด (${membersCache.length})`;
+  if(!membersCache.length){
+    $('membersBody').innerHTML = `<div class="empty"><div class="ico">🪪</div><p>ยังไม่มีสมาชิกสมัครเข้ามา</p></div>`;
+    return;
+  }
+  const rows = membersCache.map((m,i) => `
+    <div class="member-row" data-i="${i}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--surface)">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700">${escapeHtml(m.name || '—')}</div>
+        <div style="font-size:12.5px;color:var(--ink-soft)">${m.email && !String(m.email).endsWith('@member.opg') ? escapeHtml(m.email) : 'ไม่ระบุอีเมล'} · สมัคร ${formatDate(m.createdAt)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700;letter-spacing:.5px">${escapeHtml(m.idNumber || '—')}</div>
+        <div style="font-size:12px;color:var(--ink-soft)">${m.idType === 'passport' ? '🛂 พาสปอร์ต' : '🪪 บัตรประชาชน'}</div>
+      </div>
+      <div style="color:var(--ink-soft)">›</div>
+    </div>`).join('');
+  $('membersBody').innerHTML = `
+    <input type="text" id="memberSearch" placeholder="🔍 ค้นหา ชื่อ / เลขบัตร / อีเมล…" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:12px;font-size:14px"/>
+    <div id="memberList">${rows}</div>`;
+  const search = document.getElementById('memberSearch');
+  search.addEventListener('input', () => {
+    const f = search.value.trim().toLowerCase();
+    document.querySelectorAll('#memberList .member-row').forEach(el => {
+      const m = membersCache[Number(el.dataset.i)];
+      const hit = !f || [m.name, m.idNumber, m.email].some(v => String(v||'').toLowerCase().includes(f));
+      el.style.display = hit ? 'flex' : 'none';
+    });
+  });
+  document.querySelectorAll('#memberList .member-row').forEach(el =>
+    el.addEventListener('click', () => openMemberOrders(membersCache[Number(el.dataset.i)])));
+}
+
+async function openMemberOrders(m){
+  $('membersTitle').textContent = `📦 รายการของ ${m.name || ''}`;
+  $('membersBody').innerHTML = `<div class="loading"><div class="spinner"></div> กำลังโหลด…</div>`;
+  let orders = [];
+  try{
+    const r = await fetch(`${API_BASE}/api/orders/user?email=${encodeURIComponent(String(m.email||'').toLowerCase())}`);
+    const j = await r.json();
+    if(j.ok) orders = j.orders || [];
+  }catch(e){}
+  // เอาออเดอร์ที่ยังไม่อยู่ใน allOrders มารวมไว้ เพื่อให้เปิด detail modal ได้
+  orders.forEach(o => { if(!allOrders.find(x => x.orderNo === o.orderNo)) allOrders.push(o); });
+
+  const head = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" id="memberBackBtn">← กลับ</button>
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700">${escapeHtml(m.idNumber||'')}</div>
+      <div style="font-size:12.5px;color:var(--ink-soft)">${m.idType === 'passport' ? '🛂 พาสปอร์ต' : '🪪 บัตรประชาชน'}${m.email && !String(m.email).endsWith('@member.opg') ? ' · ' + escapeHtml(m.email) : ''}</div>
+    </div>`;
+  const rows = orders.map(o => `
+    <div class="member-order" data-no="${escapeHtml(o.orderNo)}" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--surface)">
+      <div style="flex:1;min-width:0">
+        <div class="order-no" style="font-weight:700">${escapeHtml(o.orderNo)}</div>
+        <div style="font-size:12px;color:var(--ink-soft)">${formatDate(o.createdAt)} · ${(o.items||[]).length} รายการ</div>
+      </div>
+      ${statusPill(o.status, o.statusText)}
+      <div style="color:var(--ink-soft)">›</div>
+    </div>`).join('');
+  $('membersBody').innerHTML = head + (orders.length ? rows : `<div class="empty"><div class="ico">📭</div><p>ลูกค้ารายนี้ยังไม่มีออเดอร์</p></div>`);
+  document.getElementById('memberBackBtn').addEventListener('click', renderMembers);
+  document.querySelectorAll('.member-order').forEach(el =>
+    el.addEventListener('click', () => openDetail(el.dataset.no)));
+}
+
 async function actTopup(id, action){
   let amount = 0;
   if(action==='approve'){
