@@ -1178,6 +1178,7 @@ function openDetail(no) {
     <div class="detail-row"><span class="k">ชื่อ</span><span class="v">${o.customer?.name||'—'}</span></div>
     <div class="detail-row"><span class="k">LINE</span><span class="v">${o.customer?.lineId||'—'}</span></div>
     ${o.customer?.email?`<div class="detail-row"><span class="k">อีเมล</span><span class="v">${o.customer.email}</span></div>`:''}
+    ${o.customer?.email?`<div class="detail-row"><span class="k">🪪 บัตร ปชช./พาสปอร์ต</span><span class="v" id="detailIdNum" style="font-family:monospace;letter-spacing:.5px">กำลังโหลด…</span></div>`:''}
     ${o.customer?.address?.detail?`<div class="detail-row"><span class="k">📍 ที่อยู่จัดส่ง</span><span class="v" style="white-space:pre-wrap">${escapeHtml(o.customer.address.detail)}${o.customer.address.phone?`\nโทร: ${escapeHtml(o.customer.address.phone)}`:''}</span></div>`:''}
     ${o.note?`<div class="detail-row"><span class="k">หมายเหตุ</span><span class="v">${o.note}</span></div>`:''}
     <div style="font-size:13px;font-weight:600;color:var(--ink-soft);margin:16px 0 8px">📦 สินค้า (${(o.items||[]).length} รายการ)</div>
@@ -1191,6 +1192,25 @@ function openDetail(no) {
     <div class="detail-row" style="font-size:12px;color:var(--ink-xsoft)"><span class="k">อัปเดต</span><span class="v">${formatDate(o.updatedAt)}</span></div>`;
 
   $('detailModal').classList.add('open');
+  loadDetailIdNum(o.customer?.email);
+}
+
+/* ดึงเลขบัตร ปชช./พาสปอร์ตเต็มของลูกค้า (ใช้ x-admin-key) มาแสดงใน detail modal */
+async function loadDetailIdNum(email){
+  const el = document.getElementById('detailIdNum');
+  if (!el) return;
+  if (!email){ el.textContent = '—'; return; }
+  try{
+    const r = await fetch(`${API_BASE}/api/address?email=${encodeURIComponent(String(email).toLowerCase())}&profile=1&full=1`, { headers:{ 'x-admin-key': adminKey } });
+    const j = await r.json();
+    if (j.ok && j.registered){
+      const typeLabel = j.idType === 'passport' ? 'พาสปอร์ต' : 'บัตร ปชช.';
+      el.textContent = `${j.idNumber || j.idMasked} (${typeLabel})`;
+    } else {
+      el.textContent = 'ยังไม่ได้ยืนยันตัวตน';
+      el.style.color = 'var(--ink-xsoft)';
+    }
+  }catch(e){ el.textContent = 'โหลดไม่สำเร็จ'; }
 }
 $('detailModalClose').addEventListener('click', () => $('detailModal').classList.remove('open'));
 $('detailClose').addEventListener('click', () => $('detailModal').classList.remove('open'));

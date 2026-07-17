@@ -51,12 +51,18 @@ export default async function handler(req, res) {
     if (req.query.profile) {
       const p = await getUserProfile(email);
       if (!p || !p.idNumber) return res.status(200).json({ ok: true, registered: false });
-      return res.status(200).json({
+      const out = {
         ok: true,
         registered: true,
         idType: p.idType,
         idMasked: maskId(p.idNumber),
-      });
+      };
+      // แอดมินขอเลขเต็ม (สำหรับพิธีการศุลกากร) — ต้องแนบ x-admin-key ที่ถูกต้อง
+      const ADMIN_KEY = (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
+      if (req.query.full && String(req.headers['x-admin-key'] || '').trim() === ADMIN_KEY) {
+        out.idNumber = p.idNumber;
+      }
+      return res.status(200).json(out);
     }
 
     const addresses = await getUserAddresses(email);
