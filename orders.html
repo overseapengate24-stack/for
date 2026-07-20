@@ -162,9 +162,10 @@ async function load(){
   }
   await loadRate();
   try{ const r=await fetch(`/api/orders/user?email=${encodeURIComponent(user.email.toLowerCase())}`); const d=await r.json(); allOrders=(d.ok&&d.orders)?d.orders:[]; }catch(e){}
-  /* ออเดอร์ที่ออกบิลแล้ว (เข้า bill flow / ถึงโกดังไทย) ย้ายไปอยู่ "รายการบิลค่าขนส่ง" — ตัดออกจากลิสต์นี้ */
+  /* ออเดอร์ที่ออกบิลแล้ว (เข้า bill flow / ถึงโกดังไทย) ย้ายไปอยู่ "รายการบิลค่าขนส่ง" — ตัดออกจากลิสต์นี้
+     ออเดอร์ฝากจ่ายเงิน (OVE, source='pay') เป็นบริการแยก ไม่เกี่ยวกับการสั่งซื้อสินค้าจีน — ตัดออกด้วย */
   const BILLED = ['REVIEW','AWAIT_PAY','SLIP','PAID','SHIPPED','DELIVERED'];
-  allOrders = allOrders.filter(o => !BILLED.includes(o.billStatus) && !['TH_WH','DELIVERING','DELIVERED'].includes(o.shipStatus));
+  allOrders = allOrders.filter(o => o.source !== 'pay' && !BILLED.includes(o.billStatus) && !['TH_WH','DELIVERING','DELIVERED'].includes(o.shipStatus));
   renderStats();
   renderTable();
 }
