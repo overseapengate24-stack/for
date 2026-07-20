@@ -244,14 +244,14 @@ function renderConfirm(){
           <div><label style="font-size:12px;color:var(--ink-soft)">ยาว(ซม.)</label><br/><input type="number" id="crEl" min="0" style="width:90px;padding:8px;border:1.5px solid var(--border);border-radius:8px"/></div>
           <div><label style="font-size:12px;color:var(--ink-soft)">สูง(ซม.)</label><br/><input type="number" id="crEh" min="0" style="width:90px;padding:8px;border:1.5px solid var(--border);border-radius:8px"/></div>
           <div><label style="font-size:12px;color:var(--ink-soft)">จำนวน(ใบ)</label><br/><input type="number" id="crEq" min="1" value="1" style="width:80px;padding:8px;border:1.5px solid var(--border);border-radius:8px"/></div>
-          <div style="background:#fff;border:1.5px solid var(--brand);border-radius:9px;padding:8px 14px"><span style="font-size:12px;color:var(--ink-soft)">≈ </span><b style="color:var(--brand-700);font-size:18px">฿<span id="crateFee">0</span></b></div>
+          <div><label style="font-size:12px;color:var(--ink-soft)">ค่าตีลังไม้ (฿) <span style="color:var(--brand-600)">แก้ไขได้</span></label><br/><div style="background:#fff;border:1.5px solid var(--brand);border-radius:9px;padding:6px 12px;display:inline-flex;align-items:center;gap:3px"><span style="font-size:14px;color:var(--ink-soft)">฿</span><input type="number" id="crateFee" min="0" value="0" style="width:80px;border:none;outline:none;background:transparent;color:var(--brand-700);font-size:18px;font-weight:700;font-family:inherit"/></div></div>
         </div>
       </div>
       <div id="qcEst" style="display:none">
         <div style="font-weight:600;margin-bottom:8px">🔍 ค่า QC สินค้า <span style="font-weight:400;color:var(--ink-soft);font-size:12px">(฿20/ชิ้น)</span></div>
         <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
           <div><label style="font-size:12px;color:var(--ink-soft)">จำนวนชิ้นรวม</label><br/><input type="number" id="qcEq" min="1" style="width:120px;padding:8px;border:1.5px solid var(--border);border-radius:8px"/></div>
-          <div style="background:#fff;border:1.5px solid var(--brand);border-radius:9px;padding:8px 14px"><span style="font-size:12px;color:var(--ink-soft)">≈ </span><b style="color:var(--brand-700);font-size:18px">฿<span id="qcFee">0</span></b></div>
+          <div><label style="font-size:12px;color:var(--ink-soft)">ค่า QC (฿) <span style="color:var(--brand-600)">แก้ไขได้</span></label><br/><div style="background:#fff;border:1.5px solid var(--brand);border-radius:9px;padding:6px 12px;display:inline-flex;align-items:center;gap:3px"><span style="font-size:14px;color:var(--ink-soft)">฿</span><input type="number" id="qcFee" min="0" value="0" style="width:80px;border:none;outline:none;background:transparent;color:var(--brand-700);font-size:18px;font-weight:700;font-family:inherit"/></div></div>
         </div>
       </div>
     </div>
@@ -274,13 +274,12 @@ function renderConfirm(){
   /* ── เครื่องคำนวณประมาณการ ตีลังไม้ / QC ── */
   const totalQty = cart.reduce((s,it)=>s+(Number(it.qty)||1),0);
   const $q=$('#qcEq'); if($q) $q.value = totalQty || 1;
-  function fee2(n){ return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}); }
   function calcCrate(){
     const w=+$('#crEw').value||0,l=+$('#crEl').value||0,h=+$('#crEh').value||0,qy=Math.max(1,+$('#crEq').value||1);
     const cbm=(w*l*h)/1000000; const each=Math.max(cbm*3500,200);
-    $('#crateFee').textContent = (w&&l&&h) ? fee2(Math.round(each*qy)) : '0';
+    $('#crateFee').value = (w&&l&&h) ? Math.round(each*qy) : 0;
   }
-  function calcQc(){ const n=Math.max(0,+$('#qcEq').value||0); $('#qcFee').textContent=fee2(n*20); }
+  function calcQc(){ const n=Math.max(0,+$('#qcEq').value||0); $('#qcFee').value = n*20; }
   function syncEst(){
     const crate = document.querySelector('input[name="crate"]:checked')?.value==='ตีลังไม้';
     const qc    = document.querySelector('input[name="qc"]:checked')?.value==='ต้องการ';
