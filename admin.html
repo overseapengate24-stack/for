@@ -967,9 +967,10 @@ function updateStats() {
   const counts = { NEW:0, QUOTED:0, PAID:0, ORDERED:0, SHIPPED:0, DONE:0, INTRANSIT:0, BILLREVIEW:0, BILLWAIT:0, BILLPAY:0, PREP:0, SHIPPEDTH:0, DELIVERED:0, IMPORT:0, PAYDEPOSIT:0 };
   const BILL_FLOW = ['REVIEW','AWAIT_PAY','SLIP','PAID','SHIPPED','DELIVERED'];
   allOrders.forEach(o => {
+    /* ออเดอร์ฝากจ่ายเงิน (OVE) เป็นบริการแยก ไม่เกี่ยวกับโกดัง/ขนส่งจีน — นับเฉพาะช่องของตัวเอง ไม่ปนกับการ์ดสถานะปกติ */
+    if(o.source==='pay'){ counts.PAYDEPOSIT++; return; }
     /* ออเดอร์นำเข้า (ลูกค้าส่งของเอง) นับเป็นป้ายข้ามสถานะ + ยังไหลตามสถานะจริงในการ์ดปกติด้วย (เชื่อมระบบเดียวกัน) */
     if(o.kind==='import') counts.IMPORT++;
-    if(o.source==='pay') counts.PAYDEPOSIT++;   /* ออเดอร์จากหน้า "ฝากจ่ายเงิน" — นับข้ามสถานะ */
     /* ออเดอร์ที่เข้า bill flow แล้ว (มี billStatus) ไม่นับใน "สั่งซื้อสำเร็จ" อีก — ไปนับในการ์ดบิลแทน */
     if(o.status === 'DONE' && BILL_FLOW.includes(o.billStatus)){ /* นับเฉพาะการ์ดบิลด้านล่าง */ }
     else if(counts[o.status] !== undefined) counts[o.status]++;
@@ -1033,7 +1034,7 @@ function applyFilter() {
   else if (filterStatus === 'PREP') list = list.filter(o => o.billStatus === 'PAID');
   else if (filterStatus === 'SHIPPEDTH') list = list.filter(o => o.billStatus === 'SHIPPED');
   else if (filterStatus === 'DELIVERED') list = list.filter(o => o.billStatus === 'DELIVERED');
-  else if (filterStatus !== 'ALL') list = list.filter(o => o.status === filterStatus);
+  else if (filterStatus !== 'ALL') list = list.filter(o => o.status === filterStatus && o.source !== 'pay');
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     list = list.filter(o =>
