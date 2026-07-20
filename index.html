@@ -1289,21 +1289,6 @@ body{font-variant-numeric:tabular-nums}
         <a class="plat" href="https://www.tmall.com" target="_blank" rel="noopener"><img src="/Tmall.png" alt="Tmall"/>Tmall</a>
         <a class="plat" href="https://www.1688.com" target="_blank" rel="noopener"><img src="/1688.jpg" alt="1688"/>1688</a>
       </div>
-      <!-- สถิติจริง (เล็ก ชิดซ้าย) -->
-      <div id="statsband" style="display:inline-flex;gap:8px;margin-top:22px;background:linear-gradient(135deg,#B89865,#7C6739);border-radius:14px;padding:12px 8px;box-shadow:0 8px 22px rgba(124,103,57,.22)">
-        <div style="text-align:center;color:#fff;padding:0 14px">
-          <div class="stat-num" id="statDelivered" style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;line-height:1">0</div>
-          <div style="font-size:11px;opacity:.92;margin-top:4px;font-weight:600">📦 ส่งสำเร็จ</div>
-        </div>
-        <div style="text-align:center;color:#fff;padding:0 14px;border-left:1px solid rgba(255,255,255,.25);border-right:1px solid rgba(255,255,255,.25)">
-          <div class="stat-num" id="statCustomers" style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;line-height:1">0</div>
-          <div style="font-size:11px;opacity:.92;margin-top:4px;font-weight:600">😊 ผู้เข้าใช้งาน</div>
-        </div>
-        <div style="text-align:center;color:#fff;padding:0 14px">
-          <div class="stat-num" id="statOrders" style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;line-height:1">0</div>
-          <div style="font-size:11px;opacity:.92;margin-top:4px;font-weight:600">🧾 ออเดอร์</div>
-        </div>
-      </div>
     </div>
 
     <!-- RIGHT: decorative visual panel -->
@@ -1374,32 +1359,6 @@ body{font-variant-numeric:tabular-nums}
     }
   </style>
 </section>
-
-<script>
-(function(){
-  function animate(el,target){
-    if(!el) return; const dur=1400, t0=performance.now();
-    function step(t){ const p=Math.min((t-t0)/dur,1); const e=1-Math.pow(1-p,3);
-      el.textContent=Math.round(target*e).toLocaleString(); if(p<1) requestAnimationFrame(step); }
-    requestAnimationFrame(step);
-  }
-  let done=false;
-  function run(){ if(done) return; done=true;
-    let meEmail=''; try{ meEmail=(JSON.parse(localStorage.getItem('opg_user')||'null')||{}).email||''; }catch(e){}
-    fetch('/api/orders/track?stats=1'+(meEmail?'&me='+encodeURIComponent(meEmail):'')).then(r=>r.json()).then(d=>{
-      if(!d||!d.ok||!d.stats) return; const s=d.stats;
-      animate(document.getElementById('statDelivered'), s.delivered||0);
-      animate(document.getElementById('statCustomers'), s.customers||0);
-      animate(document.getElementById('statOrders'), s.orders||0);
-    }).catch(()=>{});
-  }
-  const band=document.getElementById('statsband');
-  if('IntersectionObserver'in window&&band){
-    const io=new IntersectionObserver(es=>{ es.forEach(x=>{ if(x.isIntersecting){ run(); io.disconnect(); } }); });
-    io.observe(band);
-  } else { run(); }
-})();
-</script>
 
 <!-- wave divider -->
 <div class="wave-top" aria-hidden="true" style="margin-top:-2px;background:var(--bg)">
