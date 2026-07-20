@@ -141,18 +141,18 @@ async function load(){
   const qc=((poE?!!d.qc:pick(d.note,'QC')==='ต้องการ'))?'ต้องการ':'ไม่ต้องการ';
   const extra=pick(d.note,'หมายเหตุ');
   const totalThb=Number(d.total)||0, shipFee=Number(d.shipping)||0, billFee=Number(d.billFee)||0, disc=Number(d.discount)||0;
-  let sumRmb=0, qtyAll=0, rows='';
+  let sumRmb=0, qtyAll=0, rows='', rowIdx=0;
   const groups={}; items.forEach(it=>{ const s=it.shop||'ร้านค้า'; (groups[s]=groups[s]||[]).push(it); });
   const shopLogo=(s)=>{ const k=String(s||'').toLowerCase();
     const m = k.includes('tmall')?'/Tmall.png' : k.includes('1688')?'/1688.jpg' : k.includes('taobao')?'/Taobao.jpg' : '';
     return m?`<img src="${m}" alt="" style="width:18px;height:18px;border-radius:4px;object-fit:contain;vertical-align:middle;margin-right:6px"/>`:'🏪 '; };
   for(const shop in groups){
-    rows += `<tr class="shop-row"><td colspan="9">${shopLogo(shop)}${esc(shop)}</td></tr>`;
+    rows += `<tr class="shop-row"><td colspan="10">${shopLogo(shop)}${esc(shop)}</td></tr>`;
     groups[shop].forEach(it=>{
       const price=Number(it.priceRmb)||0, qty=Number(it.qty)||1, lineRmb=price*qty; sumRmb+=lineRmb; qtyAll+=qty;
       const meta=[it.color,it.size].filter(Boolean).map(esc).join(' · ');
       rows += `<tr>
-        <td>${esc((it.url||'').slice(0,0))||'-'}</td>
+        <td>${++rowIdx}</td>
         <td>${esc(shop)}</td>
         <td class="pname"><b>${esc(it.name||'(ไม่มีชื่อ)')}</b>${meta?`<div style="font-size:12px;color:var(--ink-soft)">${meta}</div>`:''}</td>
         <td>${it.imageUrl?`<img class="pimg" src="${esc(it.imageUrl)}"/>`:'📦'}</td>
