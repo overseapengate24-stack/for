@@ -6,7 +6,7 @@
  * POST /api/address  body:{ email, profile:{ idType:'thai'|'passport', idNumber } } → บันทึกเลขบัตร ปชช./พาสปอร์ต
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers } from '../lib/redis.js';
 
 const ADMIN_KEY_ENV = () => (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
 const isAdminReq = (req) => String(req.headers['x-admin-key'] || '').trim() === ADMIN_KEY_ENV();
@@ -50,11 +50,27 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     /* รายชื่อสมาชิกทั้งหมด (เฉพาะแอดมิน) */
     if (req.query.members) {
-      const ADMIN_KEY = (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
-      if (String(req.headers['x-admin-key'] || '').trim() !== ADMIN_KEY) {
-        return res.status(401).json({ ok: false, error: 'unauthorized' });
+      if (!isAdminReq(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
+      /* รวมบัญชี Google ที่เคยล็อกอิน เข้ากับข้อมูลยืนยันตัวตน (เลขบัตร) */
+      const [gus, accts] = await Promise.all([listGoogleUsers(), listAccounts()]);
+      const byEmail = new Map();
+      for (const g of gus) {
+        byEmail.set(g.email, {
+          name: g.name || '', email: g.email, picture: g.picture || '',
+          lastLoginAt: g.lastLoginAt || '', createdAt: g.firstLoginAt || g.lastLoginAt || '',
+        });
       }
-      const members = await listAccounts();
+      for (const a of accts) {
+        const key = String(a.email || '').toLowerCase();
+        const base = byEmail.get(key) || { name: a.name || '', email: key, picture: '', createdAt: a.createdAt || '' };
+        byEmail.set(key, {
+          ...base,
+          name: base.name || a.name || '',
+          idNumber: a.idNumber, idType: a.idType, verifyStatus: a.verifyStatus,
+        });
+      }
+      const members = [...byEmail.values()].sort((x, y) =>
+        String(y.lastLoginAt || y.createdAt || '').localeCompare(String(x.lastLoginAt || x.createdAt || '')));
       return res.status(200).json({ ok: true, members });
     }
 
@@ -113,6 +129,18 @@ export default async function handler(req, res) {
 
     const e = String(email || '').trim().toLowerCase();
     if (!e) return res.status(400).json({ ok: false, error: 'ระบุ email' });
+
+    /* ── บันทึกการล็อกอิน Google (เรียกจากหน้าเว็บหลัง sign-in) ── */
+    if (req.body && req.body.googleUser) {
+      const g = req.body.googleUser;
+      await saveGoogleUser(e, {
+        name: String(g.name || '').slice(0, 120),
+        picture: String(g.picture || '').slice(0, 500),
+        lastLoginAt: new Date().toISOString(),
+      });
+      try { await addKnownUser(e); } catch (e2) {}
+      return res.status(200).json({ ok: true });
+    }
 
     if (profile) {
       const idType = profile.idType === 'passport' ? 'passport' : 'thai';

@@ -1826,6 +1826,11 @@ function handleCredentialResponse(resp){
   const user = { name:u.name||u.email, email:u.email||'', picture:u.picture||'' };
   localStorage.setItem('opg_user', JSON.stringify(user));
   setLoggedIn(user);
+  // แจ้ง server ให้บันทึกบัญชี Google นี้ (สำหรับแท็บสมาชิกของแอดมิน)
+  try{
+    fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email:(user.email||'').toLowerCase(), googleUser:{ name:user.name, picture:user.picture } }) }).catch(()=>{});
+  }catch(e){}
 }
 
 function initGoogle(tries=0){

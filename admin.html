@@ -1850,7 +1850,7 @@ function verifyBadge(st){
   if(st === 'APPROVED') return `<span style="font-size:11.5px;font-weight:700;color:#2e7d4f;background:#e6f4ea;border:1px solid #b7e0c5;border-radius:999px;padding:3px 10px;white-space:nowrap">✅ ยืนยันแล้ว</span>`;
   if(st === 'REJECTED') return `<span style="font-size:11.5px;font-weight:700;color:#b3392f;background:#fdecea;border:1px solid #f5c6c1;border-radius:999px;padding:3px 10px;white-space:nowrap">✕ ปฏิเสธ</span>`;
   if(st === 'PENDING')  return `<span style="font-size:11.5px;font-weight:700;color:#8a6d1a;background:#fdf6e3;border:1px solid #ead9a6;border-radius:999px;padding:3px 10px;white-space:nowrap">⏳ รอตรวจ</span>`;
-  return `<span style="font-size:11.5px;color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px 10px;white-space:nowrap">ไม่มีรูปบัตร</span>`;
+  return `<span style="font-size:11.5px;color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px 10px;white-space:nowrap">ยังไม่ยืนยันตัวตน</span>`;
 }
 
 $('membersBtn').addEventListener('click', openMembers);
@@ -1878,13 +1878,16 @@ function renderMembers(){
   }
   const rows = membersCache.map((m,i) => `
     <div class="member-row" data-i="${i}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--surface)">
+      ${m.picture ? `<img src="${escapeHtml(m.picture)}" alt="" referrerpolicy="no-referrer" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0"/>` : `<div style="width:38px;height:38px;border-radius:50%;background:var(--brand-50,#F6F0E1);display:flex;align-items:center;justify-content:center;flex-shrink:0">👤</div>`}
       <div style="flex:1;min-width:0">
         <div style="font-weight:700">${escapeHtml(m.name || '—')}</div>
-        <div style="font-size:12.5px;color:var(--ink-soft)">${m.email && !String(m.email).endsWith('@member.opg') ? escapeHtml(m.email) : 'ไม่ระบุอีเมล'} · สมัคร ${formatDate(m.createdAt)}</div>
+        <div style="font-size:12.5px;color:var(--ink-soft)">${m.email && !String(m.email).endsWith('@member.opg') ? escapeHtml(m.email) : 'ไม่ระบุอีเมล'}${m.lastLoginAt ? ' · ล็อกอินล่าสุด ' + formatDate(m.lastLoginAt) : (m.createdAt ? ' · สมัคร ' + formatDate(m.createdAt) : '')}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700;letter-spacing:.5px">${escapeHtml(m.idNumber || '—')}</div>
-        <div style="font-size:12px;color:var(--ink-soft)">${m.idType === 'passport' ? '🛂 พาสปอร์ต' : '🪪 บัตรประชาชน'}</div>
+        ${m.idNumber
+          ? `<div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700;letter-spacing:.5px">${escapeHtml(m.idNumber)}</div>
+             <div style="font-size:12px;color:var(--ink-soft)">${m.idType === 'passport' ? '🛂 พาสปอร์ต' : '🪪 บัตรประชาชน'}</div>`
+          : `<div style="font-size:12.5px;color:var(--ink-soft)">ยังไม่กรอกเลขบัตร</div>`}
       </div>
       ${verifyBadge(m.verifyStatus)}
       <div style="color:var(--ink-soft)">›</div>
@@ -1917,13 +1920,25 @@ async function openMemberOrders(m){
   // เอาออเดอร์ที่ยังไม่อยู่ใน allOrders มารวมไว้ เพื่อให้เปิด detail modal ได้
   orders.forEach(o => { if(!allOrders.find(x => x.orderNo === o.orderNo)) allOrders.push(o); });
 
+  /* สรุปสถานะปัจจุบันของลูกค้า — เอาออเดอร์ที่อัปเดตล่าสุดเป็นตัวบอก */
+  const sorted = orders.slice().sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
+  const latest = sorted[0];
+  const sumBaht = orders.reduce((s,o)=>s + (parseFloat(o.total)||0) + (parseFloat(o.shipping)||0), 0);
+  const summary = latest ? `
+    <div style="background:var(--brand-50,#F6F0E1);border:1.5px solid var(--brand-100,#E7DBC0);border-radius:12px;padding:12px 16px;margin-bottom:14px">
+      <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:4px">สถานะล่าสุดของลูกค้า</div>
+      <div style="font-weight:700;font-size:15px">${statusPill(latest.status, latest.statusText)} <span style="font-size:12.5px;color:var(--ink-soft)">· 🚚 ${SHIP_TEXT[latest.shipStatus]||SHIP_TEXT.PENDING} · ${escapeHtml(latest.orderNo)} · อัปเดต ${formatDate(latest.updatedAt||latest.createdAt)}</span></div>
+      <div style="font-size:12.5px;color:var(--ink-soft);margin-top:6px">รวม ${orders.length} ออเดอร์ · ยอดรวม ${sumBaht.toLocaleString()} ฿</div>
+    </div>` : '';
   const head = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" id="memberBackBtn">← กลับ</button>
-      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700">${escapeHtml(m.idNumber||'')}</div>
-      <div style="font-size:12.5px;color:var(--ink-soft)">${m.idType === 'passport' ? '🛂 พาสปอร์ต' : '🪪 บัตรประชาชน'}${m.email && !String(m.email).endsWith('@member.opg') ? ' · ' + escapeHtml(m.email) : ''}</div>
+      ${m.picture ? `<img src="${escapeHtml(m.picture)}" alt="" referrerpolicy="no-referrer" style="width:30px;height:30px;border-radius:50%;object-fit:cover"/>` : ''}
+      <div style="font-size:12.5px;color:var(--ink-soft)">${m.email && !String(m.email).endsWith('@member.opg') ? escapeHtml(m.email) : ''}</div>
+      ${m.idNumber ? `<div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700">${escapeHtml(m.idNumber)}</div><div style="font-size:12.5px;color:var(--ink-soft)">${m.idType === 'passport' ? '🛂 พาสปอร์ต' : '🪪 บัตรประชาชน'}</div>` : `<div style="font-size:12.5px;color:var(--ink-soft)">ยังไม่กรอกเลขบัตร</div>`}
       ${verifyBadge(m.verifyStatus)}
     </div>
+    ${m.idNumber ? `
     <div style="margin-bottom:14px">
       <button class="btn btn-ghost btn-sm" id="memberIdImgBtn">🪪 ดูรูปบัตรเพื่อตรวจสอบ</button>
       <div id="memberIdImgBox" style="display:none;margin-top:10px;text-align:center">
@@ -1933,12 +1948,13 @@ async function openMemberOrders(m){
           <button class="btn btn-sm" id="memberRejectBtn" style="background:#b3392f;color:#fff;border:none;font-weight:700">✕ ปฏิเสธ</button>
         </div>
       </div>
-    </div>`;
-  const rows = orders.map(o => `
+    </div>` : ''}
+    ${summary}`;
+  const rows = sorted.map(o => `
     <div class="member-order" data-no="${escapeHtml(o.orderNo)}" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--surface)">
       <div style="flex:1;min-width:0">
         <div class="order-no" style="font-weight:700">${escapeHtml(o.orderNo)}</div>
-        <div style="font-size:12px;color:var(--ink-soft)">${formatDate(o.createdAt)} · ${(o.items||[]).length} รายการ</div>
+        <div style="font-size:12px;color:var(--ink-soft)">${formatDate(o.createdAt)} · ${(o.items||[]).length} รายการ · 🚚 ${SHIP_TEXT[o.shipStatus]||SHIP_TEXT.PENDING}${(parseFloat(o.total)||0)+(parseFloat(o.shipping)||0) > 0 ? ' · ' + (((parseFloat(o.total)||0)+(parseFloat(o.shipping)||0)).toLocaleString()) + ' ฿' : ''}</div>
       </div>
       ${statusPill(o.status, o.statusText)}
       <div style="color:var(--ink-soft)">›</div>
@@ -1948,7 +1964,8 @@ async function openMemberOrders(m){
   document.querySelectorAll('.member-order').forEach(el =>
     el.addEventListener('click', () => openDetail(el.dataset.no)));
 
-  /* ดูรูปบัตร + อนุมัติ/ปฏิเสธ */
+  /* ดูรูปบัตร + อนุมัติ/ปฏิเสธ — มีเฉพาะสมาชิกที่กรอกเลขบัตรแล้ว */
+  if(!document.getElementById('memberIdImgBtn')) return;
   document.getElementById('memberIdImgBtn').addEventListener('click', async () => {
     const box = document.getElementById('memberIdImgBox');
     if(box.style.display !== 'none'){ box.style.display = 'none'; return; }
