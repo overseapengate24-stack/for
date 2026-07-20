@@ -1074,21 +1074,17 @@ body{font-variant-numeric:tabular-nums}
   </div>
 </div>
 
-<!-- ID VERIFY MODAL — กรอกเลขบัตร ปชช. / พาสปอร์ต หลังล็อกอินครั้งแรก -->
+<!-- ID VERIFY MODAL — กรอกเลขบัตร ปชช. หลังล็อกอินครั้งแรก -->
 <div id="idModal" class="modal-overlay" aria-hidden="true">
   <div class="modal-card">
     <button class="modal-x" id="idModalClose" type="button" aria-label="ปิด">✕</button>
     <h3>ยืนยันตัวตนก่อนเริ่มสั่งซื้อ</h3>
-    <p class="sub">กรุณากรอกเลขบัตรประชาชน 13 หลัก หรือเลขพาสปอร์ต<br>เพื่อใช้ในพิธีการศุลกากรนำเข้าสินค้า</p>
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px">
-      <button class="btn btn-sm id-type-btn" id="idTypeThai" type="button" data-type="thai">บัตรประชาชน</button>
-      <button class="btn btn-sm id-type-btn" id="idTypePassport" type="button" data-type="passport">พาสปอร์ต</button>
-    </div>
-    <input id="idNumberInput" type="text" inputmode="numeric" maxlength="17" placeholder="เลขบัตรประชาชน 13 หลัก"
+    <p class="sub">กรุณากรอกเลขบัตรประชาชน 13 หลัก<br>เพื่อใช้ในพิธีการศุลกากรนำเข้าสินค้า</p>
+    <input id="idNumberInput" type="text" inputmode="numeric" maxlength="13" placeholder="เลขบัตรประชาชน 13 หลัก"
            style="width:100%;max-width:320px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:16px;text-align:center;letter-spacing:1px;margin-bottom:8px" />
     <label for="idPhotoInput" id="idPhotoLabel"
            style="display:block;width:100%;max-width:320px;margin:0 auto;padding:12px 14px;border:1.5px dashed var(--brand,#9C8654);border-radius:10px;font-size:13.5px;color:var(--brand-600,#7C6739);cursor:pointer;background:var(--brand-50,#F6F0E1)">
-      📷 แนบรูปถ่ายบัตรประชาชน / หน้าพาสปอร์ต
+      📷 แนบรูปถ่ายบัตรประชาชน
     </label>
     <input id="idPhotoInput" type="file" accept="image/*" style="display:none" />
     <img id="idPhotoPreview" alt="" style="display:none;max-width:200px;max-height:130px;border-radius:10px;margin:8px auto 0;border:1px solid var(--line,#ddd);object-fit:cover" />
@@ -1821,7 +1817,7 @@ function setLoggedIn(user){
   updatePreview();
   renderMyOrders();
   loadAddress();
-  setTimeout(()=>{ try{ checkProfile(); }catch(e){} }, 0); // เช็คเลขบัตร ปชช./พาสปอร์ต หลังล็อกอิน
+  setTimeout(()=>{ try{ checkProfile(); }catch(e){} }, 0); // เช็คเลขบัตร ปชช. หลังล็อกอิน
   if(location.hash === '#addresses' && typeof openAddrPage === 'function') openAddrPage();
 }
 
@@ -1863,7 +1859,7 @@ $('#logoutBtn').addEventListener('click', doLogout);
 $('#trackLoginBtn')?.addEventListener('click', openLoginModal);
 
 /* ============================================================
-   ID VERIFY — บังคับกรอกเลขบัตร ปชช. 13 หลัก หรือพาสปอร์ต หลังล็อกอิน
+   ID VERIFY — บังคับกรอกเลขบัตร ปชช. 13 หลัก หลังล็อกอิน
    ============================================================ */
 let profileOk = false;
 let currentIdType = 'thai';
@@ -1874,26 +1870,15 @@ function validThaiIdClient(id){
   for(let i=0;i<12;i++) sum += Number(id[i])*(13-i);
   return (11-(sum%11))%10 === Number(id[12]);
 }
-function validPassportClient(no){ return /^[A-Za-z0-9]{6,12}$/.test(no); }
 
 function openIdModal(){ const m=$('#idModal'); m.classList.add('open'); m.setAttribute('aria-hidden','false'); setIdType(currentIdType); }
 function closeIdModal(){ const m=$('#idModal'); m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }
 
 function setIdType(t){
-  currentIdType = t;
+  currentIdType = 'thai';
   const inp = $('#idNumberInput');
-  const bT = $('#idTypeThai'), bP = $('#idTypePassport');
-  const on  = (b)=>{ b.classList.add('btn-primary'); b.classList.remove('btn-ghost'); };
-  const off = (b)=>{ b.classList.remove('btn-primary'); b.classList.add('btn-ghost'); };
-  if(t==='thai'){
-    on(bT); off(bP);
-    inp.placeholder = 'เลขบัตรประชาชน 13 หลัก';
-    inp.setAttribute('inputmode','numeric'); inp.maxLength = 13;
-  }else{
-    on(bP); off(bT);
-    inp.placeholder = 'เลขพาสปอร์ต (เช่น AA1234567)';
-    inp.setAttribute('inputmode','text'); inp.maxLength = 12;
-  }
+  inp.placeholder = 'เลขบัตรประชาชน 13 หลัก';
+  inp.setAttribute('inputmode','numeric'); inp.maxLength = 13;
   inp.value = ''; $('#idModalHelp').textContent = '';
   inp.focus();
 }
@@ -1959,20 +1944,17 @@ async function saveIdNumber(){
   if(!currentUser || !currentUser.email){ closeIdModal(); openLoginModal(); return; }
   const inp = $('#idNumberInput');
   const help = $('#idModalHelp');
-  const val = inp.value.trim().toUpperCase();
-  if(currentIdType==='thai' && !validThaiIdClient(val)){
+  const val = inp.value.trim();
+  if(!validThaiIdClient(val)){
     help.textContent = 'เลขบัตรประชาชนไม่ถูกต้อง กรุณาตรวจสอบให้ครบ 13 หลัก'; return;
   }
-  if(currentIdType==='passport' && !validPassportClient(val)){
-    help.textContent = 'เลขพาสปอร์ตไม่ถูกต้อง (ตัวอักษร/ตัวเลข 6–12 หลัก)'; return;
-  }
-  if(!idPhotoImage){ help.textContent = 'กรุณาแนบรูปถ่ายบัตรประชาชน หรือหน้าพาสปอร์ต'; return; }
+  if(!idPhotoImage){ help.textContent = 'กรุณาแนบรูปถ่ายบัตรประชาชน'; return; }
   const btn = $('#idSaveBtn');
   btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
   try{
     const r = await fetch('/api/address', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email: currentUser.email.toLowerCase(), profile:{ idType: currentIdType, idNumber: val, idImage: idPhotoImage, name: currentUser.name || '' } })
+      body: JSON.stringify({ email: currentUser.email.toLowerCase(), profile:{ idType: 'thai', idNumber: val, idImage: idPhotoImage, name: currentUser.name || '' } })
     });
     const j = await r.json();
     if(!j.ok) throw new Error(j.error || 'บันทึกไม่สำเร็จ');
@@ -1986,8 +1968,6 @@ async function saveIdNumber(){
   btn.disabled = false; btn.textContent = 'บันทึกและเริ่มใช้งาน';
 }
 
-$('#idTypeThai').addEventListener('click', ()=>setIdType('thai'));
-$('#idTypePassport').addEventListener('click', ()=>setIdType('passport'));
 $('#idSaveBtn').addEventListener('click', saveIdNumber);
 $('#idModalClose').addEventListener('click', closeIdModal);
 $('#idModal').addEventListener('click', (e)=>{ if(e.target.id==='idModal') closeIdModal(); });
@@ -2439,7 +2419,7 @@ $('#orderForm').addEventListener('submit', async (e)=>{
   const lineId = $('#lineId').value.trim();
   if(!lineId){ flashAlert('กรุณากรอกไอดี LINE หรือเบอร์โทร เพื่อให้ทีมงานติดต่อกลับ'); return; }
   if(!currentUser || !currentUser.email){ flashAlert('กรุณาเข้าสู่ระบบก่อนสร้างเลขออเดอร์'); openLoginModal(); return; }
-  if(!profileOk){ flashAlert('กรุณากรอกเลขบัตรประชาชน หรือเลขพาสปอร์ต ก่อนสั่งซื้อ'); openIdModal(); return; }
+  if(!profileOk){ flashAlert('กรุณากรอกเลขบัตรประชาชน ก่อนสั่งซื้อ'); openIdModal(); return; }
   const user = currentUser;
   const payload = { customer:{ name:user.name||'', email:user.email||'', lineId, phone:'' }, items, note:$('#orderNote').value.trim() };
   const btn = e.submitter; if(btn){ btn.disabled=true; btn.dataset.t=btn.textContent; btn.textContent='กำลังส่ง…'; }

@@ -304,13 +304,13 @@ async function submitOrder(){
   const lineId = localStorage.getItem('opg_lineId')||'';
   if(!lineId){ toast('กรุณากรอก LINE ID ที่หน้าสั่งซื้อ'); setTimeout(()=>location.href='/#order',1200); return; }
 
-  /* ต้องยืนยันเลขบัตรประชาชน/พาสปอร์ตก่อนสั่งซื้อ */
+  /* ต้องยืนยันเลขบัตรประชาชนก่อนสั่งซื้อ */
   try{
     const rp = await fetch(`/api/address?email=${encodeURIComponent(user.email.toLowerCase())}&profile=1`);
     const dp = await rp.json();
     if(dp.ok && !dp.registered){
       localStorage.removeItem('opg_idok_'+user.email.toLowerCase());
-      toast('กรุณากรอกเลขบัตรประชาชน/พาสปอร์ตก่อนสั่งซื้อ');
+      toast('กรุณากรอกเลขบัตรประชาชนก่อนสั่งซื้อ');
       setTimeout(()=>location.href='/#order',1200);
       return;
     }

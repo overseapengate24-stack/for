@@ -2,8 +2,8 @@
  * api/address.js
  * GET  /api/address?email=...             → ดึงที่อยู่จัดส่งที่บันทึกไว้ของผู้ใช้
  * POST /api/address                       → บันทึก/อัปเดตที่อยู่จัดส่ง  body:{ email, address:{recipient,phone,detail} }
- * GET  /api/address?email=...&profile=1   → สถานะการยืนยันตัวตน (เลขบัตร ปชช./พาสปอร์ต) — คืนเฉพาะเลขท้ายแบบปกปิด
- * POST /api/address  body:{ email, profile:{ idType:'thai'|'passport', idNumber } } → บันทึกเลขบัตร ปชช./พาสปอร์ต
+ * GET  /api/address?email=...&profile=1   → สถานะการยืนยันตัวตน (เลขบัตร ปชช.) — คืนเฉพาะเลขท้ายแบบปกปิด
+ * POST /api/address  body:{ email, profile:{ idNumber } } → บันทึกเลขบัตร ปชช.
  */
 
 import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers } from '../lib/redis.js';
@@ -17,9 +17,6 @@ function validThaiId(id) {
   let sum = 0;
   for (let i = 0; i < 12; i++) sum += Number(id[i]) * (13 - i);
   return (11 - (sum % 11)) % 10 === Number(id[12]);
-}
-function validPassport(no) {
-  return /^[A-Za-z0-9]{6,12}$/.test(no);
 }
 function maskId(no) {
   const s = String(no || '');
@@ -143,19 +140,15 @@ export default async function handler(req, res) {
     }
 
     if (profile) {
-      const idType = profile.idType === 'passport' ? 'passport' : 'thai';
-      const idNumber = String(profile.idNumber || '').trim().toUpperCase();
+      const idNumber = String(profile.idNumber || '').trim();
       const name = String(profile.name || '').trim().slice(0, 120);
-      if (idType === 'thai' && !validThaiId(idNumber)) {
+      if (!validThaiId(idNumber)) {
         return res.status(400).json({ ok: false, error: 'เลขบัตรประชาชนไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง' });
       }
-      if (idType === 'passport' && !validPassport(idNumber)) {
-        return res.status(400).json({ ok: false, error: 'เลขพาสปอร์ตไม่ถูกต้อง (ตัวอักษร/ตัวเลข 6–12 หลัก)' });
-      }
-      /* รูปถ่ายบัตร — บังคับแนบ เพื่อให้แอดมินตรวจเทียบเลขได้ */
+      /* รูปถ่ายบัตรประชาชน — บังคับแนบ เพื่อให้แอดมินตรวจเทียบเลขได้ */
       const idImage = String(profile.idImage || '');
       if (!/^data:image\/(jpeg|png|webp);base64,/.test(idImage)) {
-        return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน หรือหน้าพาสปอร์ต' });
+        return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน' });
       }
       if (idImage.length > 900000) {
         return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป กรุณาลองใหม่' });
@@ -169,14 +162,14 @@ export default async function handler(req, res) {
       await saveAccountImage(idNumber, idImage);
       await saveAccount(idNumber, {
         name: name || (existing && existing.name) || '',
-        idType, idNumber,
+        idType: 'thai', idNumber,
         email: e, contactEmail: e,
         verifyStatus: 'PENDING',
         createdAt: (existing && existing.createdAt) || now,
       });
-      await saveUserProfile(e, { idType, idNumber, registeredAt: now });
+      await saveUserProfile(e, { idType: 'thai', idNumber, registeredAt: now });
       try { await addKnownUser(e); } catch (e2) {}
-      return res.status(200).json({ ok: true, registered: true, idType, idMasked: maskId(idNumber) });
+      return res.status(200).json({ ok: true, registered: true, idType: 'thai', idMasked: maskId(idNumber) });
     }
     const saved = clean(address);
     if (!saved.detail) return res.status(400).json({ ok: false, error: 'กรุณากรอกที่อยู่จัดส่ง' });

@@ -754,7 +754,7 @@ body{font-variant-numeric:tabular-nums}
   </div>
 </div>
 
-<!-- ════ MEMBERS MODAL — รายชื่อสมาชิก + เลขบัตร ปชช./พาสปอร์ต ════ -->
+<!-- ════ MEMBERS MODAL — รายชื่อสมาชิก + เลขบัตร ปชช. ════ -->
 <div class="modal-overlay" id="membersModal">
   <div class="modal" style="max-width:820px">
     <div class="modal-head">
@@ -1191,7 +1191,7 @@ function openDetail(no) {
     <div class="detail-row"><span class="k">ชื่อ</span><span class="v">${o.customer?.name||'—'}</span></div>
     <div class="detail-row"><span class="k">LINE</span><span class="v">${o.customer?.lineId||'—'}</span></div>
     ${o.customer?.email?`<div class="detail-row"><span class="k">อีเมล</span><span class="v">${o.customer.email}</span></div>`:''}
-    ${o.customer?.email?`<div class="detail-row"><span class="k">🪪 บัตร ปชช./พาสปอร์ต</span><span class="v" id="detailIdNum" style="font-family:monospace;letter-spacing:.5px">กำลังโหลด…</span></div>`:''}
+    ${o.customer?.email?`<div class="detail-row"><span class="k">🪪 บัตรประชาชน</span><span class="v" id="detailIdNum" style="font-family:monospace;letter-spacing:.5px">กำลังโหลด…</span></div>`:''}
     ${o.customer?.address?.detail?`<div class="detail-row"><span class="k">📍 ที่อยู่จัดส่ง</span><span class="v" style="white-space:pre-wrap">${escapeHtml(o.customer.address.detail)}${o.customer.address.phone?`\nโทร: ${escapeHtml(o.customer.address.phone)}`:''}</span></div>`:''}
     ${o.note?`<div class="detail-row"><span class="k">หมายเหตุ</span><span class="v">${o.note}</span></div>`:''}
     <div style="font-size:13px;font-weight:600;color:var(--ink-soft);margin:16px 0 8px">📦 สินค้า (${(o.items||[]).length} รายการ)</div>
@@ -1208,7 +1208,7 @@ function openDetail(no) {
   loadDetailIdNum(o.customer?.email);
 }
 
-/* ดึงเลขบัตร ปชช./พาสปอร์ตเต็มของลูกค้า (ใช้ x-admin-key) มาแสดงใน detail modal */
+/* ดึงเลขบัตร ปชช. เต็มของลูกค้า (ใช้ x-admin-key) มาแสดงใน detail modal */
 async function loadDetailIdNum(email){
   const el = document.getElementById('detailIdNum');
   if (!el) return;
@@ -1217,8 +1217,7 @@ async function loadDetailIdNum(email){
     const r = await fetch(`${API_BASE}/api/address?email=${encodeURIComponent(String(email).toLowerCase())}&profile=1&full=1`, { headers:{ 'x-admin-key': adminKey } });
     const j = await r.json();
     if (j.ok && j.registered){
-      const typeLabel = j.idType === 'passport' ? 'พาสปอร์ต' : 'บัตร ปชช.';
-      el.textContent = `${j.idNumber || j.idMasked} (${typeLabel})`;
+      el.textContent = `${j.idNumber || j.idMasked} (บัตร ปชช.)`;
     } else {
       el.textContent = 'ยังไม่ได้ยืนยันตัวตน';
       el.style.color = 'var(--ink-xsoft)';
@@ -1843,7 +1842,7 @@ function renderTopups(){
   $('topupBody').querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click',()=>actTopup(b.dataset.reject,'reject')));
 }
 /* ============================================================
-   สมาชิก — รายชื่อ + เลขบัตร ปชช./พาสปอร์ต → กดดูออเดอร์ของลูกค้า
+   สมาชิก — รายชื่อ + เลขบัตร ปชช. → กดดูออเดอร์ของลูกค้า
    ============================================================ */
 let membersCache = [];
 
@@ -1887,7 +1886,7 @@ function renderMembers(){
       <div style="text-align:right">
         ${m.idNumber
           ? `<div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700;letter-spacing:.5px">${escapeHtml(m.idNumber)}</div>
-             <div style="font-size:12px;color:var(--ink-soft)">${m.idType === 'passport' ? '🛂 พาสปอร์ต' : '🪪 บัตรประชาชน'}</div>`
+             <div style="font-size:12px;color:var(--ink-soft)">🪪 บัตรประชาชน</div>`
           : `<div style="font-size:12.5px;color:var(--ink-soft)">ยังไม่กรอกเลขบัตร</div>`}
       </div>
       ${verifyBadge(m.verifyStatus)}
@@ -1936,7 +1935,7 @@ async function openMemberOrders(m){
       <button class="btn btn-ghost btn-sm" id="memberBackBtn">← กลับ</button>
       ${m.picture ? `<img src="${escapeHtml(m.picture)}" alt="" referrerpolicy="no-referrer" style="width:30px;height:30px;border-radius:50%;object-fit:cover"/>` : ''}
       <div style="font-size:12.5px;color:var(--ink-soft)">${m.email && !String(m.email).endsWith('@member.opg') ? escapeHtml(m.email) : ''}</div>
-      ${m.idNumber ? `<div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700">${escapeHtml(m.idNumber)}</div><div style="font-size:12.5px;color:var(--ink-soft)">${m.idType === 'passport' ? '🛂 พาสปอร์ต' : '🪪 บัตรประชาชน'}</div>` : `<div style="font-size:12.5px;color:var(--ink-soft)">ยังไม่กรอกเลขบัตร</div>`}
+      ${m.idNumber ? `<div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700">${escapeHtml(m.idNumber)}</div><div style="font-size:12.5px;color:var(--ink-soft)">🪪 บัตรประชาชน</div>` : `<div style="font-size:12.5px;color:var(--ink-soft)">ยังไม่กรอกเลขบัตร</div>`}
       ${verifyBadge(m.verifyStatus)}
     </div>
     ${m.idNumber ? `
