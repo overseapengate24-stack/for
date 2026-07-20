@@ -87,7 +87,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { email, address, profile, register, login } = req.body || {};
+    const { email, address, profile } = req.body || {};
 
     /* ── (แอดมิน) ขอรูปบัตรของสมาชิก ── */
     if (req.body && req.body.adminGetIdImage) {
@@ -111,63 +111,43 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, account: acct });
     }
 
-    /* ── เข้าสู่ระบบด้วยเลขบัตร ปชช./พาสปอร์ต ── */
-    if (login) {
-      const idNumber = String(login.idNumber || '').trim().toUpperCase();
-      if (!idNumber) return res.status(400).json({ ok: false, error: 'กรุณากรอกเลขบัตรประชาชน หรือเลขพาสปอร์ต' });
-      const acct = await getAccount(idNumber);
-      return res.status(200).json({ ok: true, account: acct || null });
-    }
-
-    /* ── สมัครสมาชิก ── */
-    if (register) {
-      const name = String(register.name || '').trim().slice(0, 120);
-      const idType = register.idType === 'passport' ? 'passport' : 'thai';
-      const idNumber = String(register.idNumber || '').trim().toUpperCase();
-      const rEmail = String(register.email || '').trim().toLowerCase().slice(0, 120);
-      if (!name) return res.status(400).json({ ok: false, error: 'กรุณากรอกชื่อ-นามสกุล' });
-      if (idType === 'thai' && !validThaiId(idNumber)) {
-        return res.status(400).json({ ok: false, error: 'เลขบัตรประชาชนไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง' });
-      }
-      if (idType === 'passport' && !validPassport(idNumber)) {
-        return res.status(400).json({ ok: false, error: 'เลขพาสปอร์ตไม่ถูกต้อง (ตัวอักษร/ตัวเลข 6–12 หลัก)' });
-      }
-      if (rEmail && !/^\S+@\S+\.\S+$/.test(rEmail)) {
-        return res.status(400).json({ ok: false, error: 'รูปแบบอีเมลไม่ถูกต้อง' });
-      }
-      /* รูปถ่ายบัตร ปชช./พาสปอร์ต — บังคับแนบตอนสมัคร ให้แอดมินตรวจเทียบเลข */
-      const idImage = String(register.idImage || '');
-      if (!/^data:image\/(jpeg|png|webp);base64,/.test(idImage)) {
-        return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน หรือหน้าพาสปอร์ต' });
-      }
-      if (idImage.length > 900000) {
-        return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป กรุณาลองใหม่' });
-      }
-      const existing = await getAccount(idNumber);
-      if (existing) return res.status(409).json({ ok: false, error: 'เลขนี้มีบัญชีอยู่แล้ว — กรุณากดเข้าสู่ระบบ' });
-      // ถ้าไม่ให้อีเมล ใช้อีเมลภายในจากเลขบัตรเป็น key ของออเดอร์/ที่อยู่แทน
-      const acctEmail = rEmail || `id_${idNumber.toLowerCase()}@member.opg`;
-      const acct = { name, idType, idNumber, email: acctEmail, contactEmail: rEmail, verifyStatus: 'PENDING', createdAt: new Date().toISOString() };
-      await saveAccountImage(idNumber, idImage);
-      await saveAccount(idNumber, acct);
-      await saveUserProfile(acctEmail, { idType, idNumber, registeredAt: acct.createdAt });
-      try { await addKnownUser(acctEmail); } catch (e2) {}
-      return res.status(200).json({ ok: true, account: acct });
-    }
-
     const e = String(email || '').trim().toLowerCase();
     if (!e) return res.status(400).json({ ok: false, error: 'ระบุ email' });
 
     if (profile) {
       const idType = profile.idType === 'passport' ? 'passport' : 'thai';
       const idNumber = String(profile.idNumber || '').trim().toUpperCase();
+      const name = String(profile.name || '').trim().slice(0, 120);
       if (idType === 'thai' && !validThaiId(idNumber)) {
         return res.status(400).json({ ok: false, error: 'เลขบัตรประชาชนไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง' });
       }
       if (idType === 'passport' && !validPassport(idNumber)) {
         return res.status(400).json({ ok: false, error: 'เลขพาสปอร์ตไม่ถูกต้อง (ตัวอักษร/ตัวเลข 6–12 หลัก)' });
       }
-      await saveUserProfile(e, { idType, idNumber, registeredAt: new Date().toISOString() });
+      /* รูปถ่ายบัตร — บังคับแนบ เพื่อให้แอดมินตรวจเทียบเลขได้ */
+      const idImage = String(profile.idImage || '');
+      if (!/^data:image\/(jpeg|png|webp);base64,/.test(idImage)) {
+        return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน หรือหน้าพาสปอร์ต' });
+      }
+      if (idImage.length > 900000) {
+        return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป กรุณาลองใหม่' });
+      }
+      /* เลขนี้ถูกผูกกับบัญชีอีเมลอื่นแล้วหรือไม่ */
+      const existing = await getAccount(idNumber);
+      if (existing && String(existing.email || '').toLowerCase() !== e) {
+        return res.status(409).json({ ok: false, error: 'เลขนี้ถูกใช้กับบัญชีอื่นแล้ว — หากเป็นเลขของท่านจริง กรุณาติดต่อแอดมิน' });
+      }
+      const now = new Date().toISOString();
+      await saveAccountImage(idNumber, idImage);
+      await saveAccount(idNumber, {
+        name: name || (existing && existing.name) || '',
+        idType, idNumber,
+        email: e, contactEmail: e,
+        verifyStatus: 'PENDING',
+        createdAt: (existing && existing.createdAt) || now,
+      });
+      await saveUserProfile(e, { idType, idNumber, registeredAt: now });
+      try { await addKnownUser(e); } catch (e2) {}
       return res.status(200).json({ ok: true, registered: true, idType, idMasked: maskId(idNumber) });
     }
     const saved = clean(address);
