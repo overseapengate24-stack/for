@@ -79,7 +79,9 @@ canvas{display:none}
 
       <div class="actions">
         <button class="btn btn-primary" id="startBtn">เริ่มยืนยันตัวตน →</button>
+        <button class="btn btn-ghost" id="skipBtn">ยืนยันภายหลัง</button>
       </div>
+      <div style="font-size:12px;color:var(--ink-soft);text-align:center;margin-top:12px">💡 กด "ยืนยันภายหลัง" ได้ถ้ายังไม่พร้อม (แต่จะสั่งซื้อไม่ได้จนกว่าจะยืนยัน)</div>
     </div>
 
     <!-- ═════ STEP 2: ID CARD ═════ -->
@@ -184,6 +186,10 @@ let stream = null;
 
 /* ── STEP 1 → 2 ── */
 $('#startBtn').addEventListener('click', ()=> goStep(2));
+$('#skipBtn').addEventListener('click', ()=>{
+  try{ sessionStorage.setItem('opg_skip_kyc', '1'); }catch(e){}
+  location.href = nextUrl;
+});
 $('#back2').addEventListener('click', ()=> goStep(1));
 
 /* ── STEP 2: upload ID + OCR ── */

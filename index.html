@@ -1905,14 +1905,21 @@ async function checkProfile(){
       }else{
         profileOk = false;
         localStorage.removeItem(IDOK_KEY(email));
-        openIdModal();
+        // ยังไม่ยืนยันตัวตน → พาไปหน้า e-KYC อัตโนมัติ (ยกเว้นถ้ากดข้ามภายในเซสชันนี้)
+        if(sessionStorage.getItem('opg_skip_kyc') !== '1'){
+          goToVerify();
+        } else {
+          openIdModal();
+        }
       }
     }
   }catch(e){ /* เน็ตหลุด — ใช้ค่าแคชไปก่อน เดี๋ยวเช็คซ้ำตอนกดสั่งซื้อ */ }
 }
 
-/* พาลูกค้าไปทำ e-KYC — ใช้แทนการเด้ง modal เก่า */
+/* พาลูกค้าไปทำ e-KYC — ใช้แทนการเด้ง modal เก่า
+   กันลูป: ถ้าอยู่บน /verify.html อยู่แล้ว ไม่ต้อง redirect ซ้ำ */
 function goToVerify(){
+  if(/\/verify\.html/i.test(location.pathname)) return;
   const next = encodeURIComponent(location.pathname + location.hash);
   location.href = '/verify.html?next=' + next;
 }
