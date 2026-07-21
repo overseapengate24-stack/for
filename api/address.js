@@ -168,7 +168,7 @@ export default async function handler(req, res) {
       // เตรียม data URL ถ้ามาเป็น base64 ล้วน
       const asDataUrl = (s) => (/^data:/.test(s) ? s : `data:image/jpeg;base64,${s}`);
       try {
-        const cmp = await compareFaces(asDataUrl(cardFace), asDataUrl(selfie), 0.8);
+        const cmp = await compareFaces(asDataUrl(cardFace), asDataUrl(selfie), 0.5);
         if (!cmp.match) {
           return res.status(200).json({ ok: false, verified: false, score: cmp.score, error: `ใบหน้าไม่ตรงกับบัตร (คะแนน ${Math.round(cmp.score*100)}%)` });
         }
