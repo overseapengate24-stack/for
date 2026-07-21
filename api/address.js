@@ -6,8 +6,31 @@
  * POST /api/address  body:{ email, profile:{ idNumber } } → บันทึกเลขบัตร ปชช.
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers, resetAllVerifications } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers, resetAllVerifications, bindEmailToId, getIdByEmail } from '../lib/redis.js';
 import { ocrThaiIdFront, compareFaces } from '../lib/iapp.js';
+import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
+
+/* Password hashing — Node built-in scrypt (ไม่ต้องพึ่ง lib ภายนอก) */
+function hashPassword(pw) {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(String(pw), salt, 64).toString('hex');
+  return `s2:${salt}:${hash}`;
+}
+function verifyPassword(pw, stored) {
+  try {
+    const [ver, salt, hash] = String(stored || '').split(':');
+    if (ver !== 's2' || !salt || !hash) return false;
+    const test = scryptSync(String(pw), salt, 64);
+    const known = Buffer.from(hash, 'hex');
+    return known.length === test.length && timingSafeEqual(known, test);
+  } catch { return false; }
+}
+/* ตัดฟิลด์ passwordHash ออกก่อนส่งกลับ client */
+function safeAccount(a) {
+  if (!a) return null;
+  const { passwordHash, ...rest } = a;
+  return rest;
+}
 
 const ADMIN_KEY_ENV = () => (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
 const isAdminReq = (req) => String(req.headers['x-admin-key'] || '').trim() === ADMIN_KEY_ENV();
@@ -63,9 +86,11 @@ export default async function handler(req, res) {
         const base = byEmail.get(key) || { name: a.name || '', email: key, picture: '', createdAt: a.createdAt || '' };
         byEmail.set(key, {
           ...base,
-          name: base.name || a.name || '',
+          name: a.name || base.name || '',
+          phone: a.phone || base.phone || '',
           idNumber: a.idNumber, idType: a.idType, verifyStatus: a.verifyStatus,
           kycProvider: a.kycProvider, kycScore: a.kycScore, kycAt: a.kycAt,
+          createdAt: base.createdAt || a.createdAt || '',
         });
       }
       const members = [...byEmail.values()].sort((x, y) =>
@@ -103,6 +128,54 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     const { email, address, profile } = req.body || {};
+
+    /* ── สมัครสมาชิกใหม่ ── */
+    if (req.body && req.body.register) {
+      const r = req.body.register;
+      const name = String(r.name || '').trim().slice(0, 120);
+      const phone = String(r.phone || '').trim().replace(/[^\d+-]/g, '').slice(0, 20);
+      const email = String(r.email || '').trim().toLowerCase().slice(0, 120);
+      const password = String(r.password || '');
+      const confirmPassword = String(r.confirmPassword || '');
+      const idNumber = String(r.idNumber || '').trim();
+      if (!name) return res.status(400).json({ ok: false, error: 'กรุณากรอกชื่อ-นามสกุล' });
+      if (!phone || phone.replace(/\D/g, '').length < 9) return res.status(400).json({ ok: false, error: 'เบอร์โทรศัพท์ไม่ถูกต้อง' });
+      if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'รูปแบบอีเมลไม่ถูกต้อง' });
+      if (password.length < 6) return res.status(400).json({ ok: false, error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' });
+      if (password !== confirmPassword) return res.status(400).json({ ok: false, error: 'รหัสผ่านไม่ตรงกัน' });
+      if (!validThaiId(idNumber)) return res.status(400).json({ ok: false, error: 'เลขบัตรประชาชนไม่ถูกต้อง' });
+      // เช็คซ้ำ
+      const existingByEmail = await getIdByEmail(email);
+      if (existingByEmail) return res.status(409).json({ ok: false, error: 'อีเมลนี้ถูกใช้สมัครแล้ว — กรุณาเข้าสู่ระบบ' });
+      const existingById = await getAccount(idNumber);
+      if (existingById) return res.status(409).json({ ok: false, error: 'เลขบัตรประชาชนนี้ถูกใช้สมัครแล้ว' });
+      const now = new Date().toISOString();
+      const acct = {
+        name, phone, email, idNumber,
+        idType: 'thai',
+        passwordHash: hashPassword(password),
+        verifyStatus: 'NONE',
+        createdAt: now,
+      };
+      await saveAccount(idNumber, acct);
+      await bindEmailToId(email, idNumber);
+      await saveUserProfile(email, { idType: 'thai', idNumber, registeredAt: now });
+      try { await addKnownUser(email); } catch (e2) {}
+      return res.status(200).json({ ok: true, user: safeAccount(acct) });
+    }
+
+    /* ── เข้าสู่ระบบด้วยอีเมล + รหัสผ่าน ── */
+    if (req.body && req.body.login) {
+      const email = String(req.body.login.email || '').trim().toLowerCase();
+      const password = String(req.body.login.password || '');
+      if (!email || !password) return res.status(400).json({ ok: false, error: 'กรุณากรอกอีเมลและรหัสผ่าน' });
+      const idNumber = await getIdByEmail(email);
+      if (!idNumber) return res.status(401).json({ ok: false, error: 'ไม่พบบัญชีนี้ — กรุณาสมัครสมาชิก' });
+      const acct = await getAccount(idNumber);
+      if (!acct || !acct.passwordHash) return res.status(401).json({ ok: false, error: 'บัญชีนี้ยังไม่ได้ตั้งรหัสผ่าน' });
+      if (!verifyPassword(password, acct.passwordHash)) return res.status(401).json({ ok: false, error: 'รหัสผ่านไม่ถูกต้อง' });
+      return res.status(200).json({ ok: true, user: safeAccount(acct) });
+    }
 
     /* ── (แอดมิน) รีเซ็ตการยืนยันตัวตนของสมาชิกทุกคน ── */
     if (req.body && req.body.adminResetAllKyc) {
