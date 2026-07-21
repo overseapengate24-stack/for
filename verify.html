@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ยืนยันตัวตน e-KYC · Oversea PenGate</title>
+<link rel="icon" href="/logo.png?v=2" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#9C8654;--brand-600:#7C6739;--brand-700:#63522C;--brand-50:#F6F0E1;--brand-100:#E7DBC0;--ink:#3C3526;--ink-soft:#7C715B;--bg:#FAF6EE;--border:#ECE2CE;--ok:#2e7d4f;--err:#b3392f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.6}
+.top{background:linear-gradient(90deg,#B89865,#9C8654);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.top h1{font-family:'Playfair Display',serif;font-size:18px;color:#fff;flex:1}
+.top a{color:#fff;font-size:13px;text-decoration:none;background:rgba(255,255,255,.2);padding:7px 14px;border-radius:999px;font-weight:600}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 60px}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:28px 24px;box-shadow:0 4px 16px rgba(124,103,57,.08)}
+.steps{display:flex;gap:6px;margin-bottom:18px}
+.step-dot{flex:1;height:6px;border-radius:3px;background:var(--brand-100)}
+.step-dot.active{background:var(--brand)}
+.step-dot.done{background:var(--ok)}
+h2{font-family:'Playfair Display',serif;font-size:22px;color:var(--brand-700);margin-bottom:6px}
+.sub{color:var(--ink-soft);font-size:14px;margin-bottom:20px}
+.btn{padding:12px 22px;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.btn-primary{background:var(--brand-600);color:#fff}
+.btn-primary:hover{background:var(--brand-700)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink)}
+.btn-ghost:hover{background:var(--brand-50)}
+.checklist{background:var(--brand-50);border:1px solid var(--brand-100);border-radius:12px;padding:14px 18px;margin:14px 0}
+.checklist li{list-style:none;padding:4px 0;font-size:14px}
+.upload-zone{border:2px dashed var(--brand);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;background:var(--brand-50);transition:.15s;margin:14px 0}
+.upload-zone:hover{background:var(--brand-100)}
+.upload-zone .ico{font-size:42px;margin-bottom:8px;display:block}
+.upload-zone p{color:var(--brand-700);font-weight:600;font-size:15px}
+.upload-zone small{color:var(--ink-soft);font-size:12.5px;display:block;margin-top:6px}
+.preview{max-width:100%;max-height:280px;border-radius:10px;border:1.5px solid var(--border);margin:10px auto;display:block;object-fit:contain}
+.data-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.data-row:last-child{border:none}
+.data-row .k{color:var(--ink-soft)}
+.data-row .v{font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--ink)}
+.hint{color:var(--err);font-size:13px;margin-top:8px;min-height:18px}
+.spinner{width:22px;height:22px;border:2.5px solid var(--brand-100);border-top-color:var(--brand-600);border-radius:50%;animation:spin .9s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+video{width:100%;max-width:400px;border-radius:12px;background:#000;display:block;margin:12px auto}
+canvas{display:none}
+.result{text-align:center;padding:24px 0}
+.result .big{font-size:60px;margin-bottom:8px}
+.result .ok{color:var(--ok)}
+.result .err{color:var(--err)}
+.result .score{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:var(--brand-700)}
+.actions{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="top">
+  <a href="/">← หน้าหลัก</a>
+  <h1>🔐 ยืนยันตัวตน e-KYC</h1>
+</div>
+<div class="wrap">
+  <div class="card">
+    <div class="steps">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <!-- ═════ STEP 1: INTRO ═════ -->
+    <div id="step1">
+      <h2>ยืนยันตัวตนก่อนเริ่มสั่งซื้อ</h2>
+      <p class="sub">เพื่อความปลอดภัยและใช้ในพิธีการนำเข้าสินค้า กรุณายืนยันตัวตนตามขั้นตอน (ใช้เวลา ~2 นาที)</p>
+
+      <div class="checklist">
+        <li>✅ บัตรประชาชนตัวจริง</li>
+        <li>✅ กล้องมือถือหรือคอมพิวเตอร์</li>
+        <li>✅ อยู่ในที่แสงสว่างพอ</li>
+        <li>✅ ไม่ใส่แว่นดำ/หมวก ตอนถ่ายเซลฟี่</li>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="startBtn">เริ่มยืนยันตัวตน →</button>
+      </div>
+    </div>
+
+    <!-- ═════ STEP 2: ID CARD ═════ -->
+    <div id="step2" style="display:none">
+      <h2>📷 ถ่ายรูปหน้าบัตรประชาชน</h2>
+      <p class="sub">วางบัตรบนพื้นสีเข้ม ถ่ายให้เห็นครบทุกมุม ตัวหนังสือชัด</p>
+
+      <label for="idFile" class="upload-zone">
+        <span class="ico">🪪</span>
+        <p>กดเพื่อเลือกรูปบัตร หรือถ่ายจากกล้อง</p>
+        <small>รองรับไฟล์ JPG, PNG · ขนาดไม่เกิน 8MB</small>
+      </label>
+      <input id="idFile" type="file" accept="image/*" capture="environment" style="display:none"/>
+      <img id="idPreview" class="preview" style="display:none" alt=""/>
+
+      <div id="ocrData" style="display:none;background:var(--brand-50);border:1px solid var(--brand-100);border-radius:12px;padding:14px 18px;margin:14px 0">
+        <div style="font-weight:700;color:var(--brand-700);margin-bottom:8px">📋 ข้อมูลที่อ่านได้จากบัตร</div>
+        <div class="data-row"><span class="k">ชื่อ-นามสกุล</span><span class="v" id="dName">—</span></div>
+        <div class="data-row"><span class="k">เลขบัตรประชาชน</span><span class="v" id="dId">—</span></div>
+        <div class="data-row"><span class="k">วันเกิด</span><span class="v" id="dDob">—</span></div>
+      </div>
+
+      <div class="hint" id="hint2"></div>
+      <div class="actions">
+        <button class="btn btn-ghost" id="back2">← กลับ</button>
+        <button class="btn btn-primary" id="next2" disabled>ข้อมูลถูกต้อง ต่อไป →</button>
+      </div>
+    </div>
+
+    <!-- ═════ STEP 3: SELFIE ═════ -->
+    <div id="step3" style="display:none">
+      <h2>🤳 ถ่ายรูปใบหน้าของคุณ</h2>
+      <p class="sub">มองตรงเข้ากล้อง ให้แสงส่องหน้าให้ชัด ไม่ต้องยิ้ม</p>
+
+      <video id="cam" autoplay playsinline muted></video>
+      <canvas id="snap"></canvas>
+      <img id="selfiePreview" class="preview" style="display:none" alt=""/>
+
+      <div class="hint" id="hint3"></div>
+      <div class="actions">
+        <button class="btn btn-ghost" id="back3">← กลับ</button>
+        <button class="btn btn-primary" id="snapBtn">📸 ถ่ายรูป</button>
+        <button class="btn btn-ghost" id="retakeBtn" style="display:none">↻ ถ่ายใหม่</button>
+        <button class="btn btn-primary" id="submitBtn" style="display:none">✓ ยืนยันตัวตน</button>
+      </div>
+    </div>
+
+    <!-- ═════ RESULT ═════ -->
+    <div id="result" style="display:none" class="result">
+      <div id="resIcon" class="big"></div>
+      <h2 id="resTitle"></h2>
+      <p class="sub" id="resDetail"></p>
+      <div id="resScore" class="score"></div>
+      <div class="actions" id="resActions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (s)=>document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const nextUrl = params.get('next') || '/';
+const user = (()=>{ try{ return JSON.parse(localStorage.getItem('opg_user')||'null'); }catch(e){ return null; } })();
+
+if(!user || !user.email){ location.replace('/'); }
+
+/* ── ย่อรูปฝั่ง client ── */
+function fileToDataURL(file, maxW = 1200, quality = 0.85){
+  return new Promise((res, rej)=>{
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = ()=>{
+      const scale = Math.min(1, maxW / img.width);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); rej(new Error('อ่านไฟล์ไม่สำเร็จ')); };
+    img.src = url;
+  });
+}
+
+/* ── STEP navigation ── */
+function goStep(n){
+  ['step1','step2','step3','result'].forEach(id=> $('#'+id).style.display = 'none');
+  ['dot1','dot2','dot3'].forEach((id,i)=>{
+    const el = $('#'+id);
+    el.classList.remove('active','done');
+    if(i < n-1) el.classList.add('done');
+    else if(i === n-1) el.classList.add('active');
+  });
+  if(n===0) $('#result').style.display='block';
+  else $('#step'+n).style.display='block';
+}
+
+/* ── STATE ── */
+let ocrResult = null;
+let cardFaceB64 = '';
+let selfieDataUrl = '';
+let stream = null;
+
+/* ── STEP 1 → 2 ── */
+$('#startBtn').addEventListener('click', ()=> goStep(2));
+$('#back2').addEventListener('click', ()=> goStep(1));
+
+/* ── STEP 2: upload ID + OCR ── */
+$('#idFile').addEventListener('change', async (e)=>{
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  const hint = $('#hint2'); hint.textContent = '';
+  $('#next2').disabled = true; $('#ocrData').style.display='none';
+  try{
+    const dataUrl = await fileToDataURL(f);
+    $('#idPreview').src = dataUrl; $('#idPreview').style.display='block';
+    hint.innerHTML = '<span class="spinner"></span> กำลังอ่านบัตร…';
+    const r = await fetch('/api/address', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: user.email.toLowerCase(), kycOcr:{ image: dataUrl } })
+    });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'อ่านบัตรไม่สำเร็จ');
+    ocrResult = j;
+    cardFaceB64 = j.faceBase64;
+    $('#dName').textContent = j.name || '—';
+    $('#dId').textContent = j.idNumber || '—';
+    $('#dDob').textContent = j.dob || '—';
+    $('#ocrData').style.display='block';
+    $('#next2').disabled = false;
+    hint.textContent = '✅ อ่านสำเร็จ ตรวจสอบข้อมูลด้านบน';
+    hint.style.color = 'var(--ok)';
+  }catch(err){
+    hint.textContent = err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+    hint.style.color = 'var(--err)';
+  }
+});
+
+$('#next2').addEventListener('click', async ()=>{
+  goStep(3);
+  await startCamera();
+});
+
+/* ── STEP 3: camera ── */
+async function startCamera(){
+  const hint = $('#hint3'); hint.textContent = '';
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ideal:720}, height:{ideal:720} } });
+    $('#cam').srcObject = stream;
+    $('#cam').style.display='block';
+    $('#selfiePreview').style.display='none';
+    $('#snapBtn').style.display=''; $('#retakeBtn').style.display='none'; $('#submitBtn').style.display='none';
+  }catch(err){
+    hint.textContent = 'เปิดกล้องไม่ได้: ' + (err.message || 'ไม่อนุญาต') + ' — กรุณาอนุญาตกล้องในเบราว์เซอร์';
+    hint.style.color = 'var(--err)';
+  }
+}
+function stopCamera(){ if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } }
+
+$('#back3').addEventListener('click', ()=>{ stopCamera(); goStep(2); });
+
+$('#snapBtn').addEventListener('click', ()=>{
+  const v = $('#cam'), c = $('#snap');
+  c.width = v.videoWidth || 480; c.height = v.videoHeight || 480;
+  c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+  selfieDataUrl = c.toDataURL('image/jpeg', 0.85);
+  $('#selfiePreview').src = selfieDataUrl; $('#selfiePreview').style.display='block';
+  $('#cam').style.display='none'; stopCamera();
+  $('#snapBtn').style.display='none';
+  $('#retakeBtn').style.display=''; $('#submitBtn').style.display='';
+});
+
+$('#retakeBtn').addEventListener('click', ()=> startCamera());
+
+$('#submitBtn').addEventListener('click', async ()=>{
+  const hint = $('#hint3'); hint.textContent=''; $('#submitBtn').disabled = true;
+  hint.innerHTML = '<span class="spinner"></span> กำลังตรวจสอบใบหน้า…'; hint.style.color = 'var(--ink-soft)';
+  try{
+    const r = await fetch('/api/address', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        email: user.email.toLowerCase(),
+        kycVerify:{
+          idNumber: ocrResult.idNumber,
+          name: ocrResult.name,
+          cardFace: cardFaceB64,
+          selfie: selfieDataUrl,
+        }
+      })
+    });
+    const j = await r.json();
+    if(j.ok && j.verified){
+      try{ localStorage.setItem('opg_idok_' + user.email.toLowerCase(), '1'); }catch(e){}
+      showResult(true, j.score);
+    } else {
+      showResult(false, j.score, j.error);
+    }
+  }catch(err){
+    showResult(false, 0, err.message);
+  }
+});
+
+function showResult(pass, score, errMsg){
+  goStep(0);
+  const pct = Math.round((score||0)*100);
+  if(pass){
+    $('#resIcon').textContent = '✅'; $('#resIcon').className = 'big ok';
+    $('#resTitle').textContent = 'ยืนยันตัวตนสำเร็จ';
+    $('#resDetail').textContent = 'ยินดีต้อนรับ! เริ่มสั่งซื้อสินค้าได้เลย';
+    $('#resScore').textContent = pct > 0 ? `คะแนนความตรง: ${pct}%` : '';
+    $('#resActions').innerHTML = `<a class="btn btn-primary" href="${nextUrl}">ไปหน้าสั่งซื้อ →</a>`;
+  } else {
+    $('#resIcon').textContent = '❌'; $('#resIcon').className = 'big err';
+    $('#resTitle').textContent = 'ไม่สามารถยืนยันตัวตนได้';
+    $('#resDetail').textContent = errMsg || 'ใบหน้าไม่ตรงกับบัตร กรุณาลองใหม่ในที่แสงสว่างกว่านี้';
+    $('#resScore').textContent = pct > 0 ? `คะแนนความตรง: ${pct}% (ต้องได้ ≥ 80%)` : '';
+    $('#resActions').innerHTML = `
+      <button class="btn btn-primary" onclick="location.reload()">↻ ลองใหม่</button>
+      <a class="btn btn-ghost" href="https://line.me/R/ti/p/@overseapengate" target="_blank">💬 ติดต่อแอดมิน</a>`;
+  }
+}
+</script>
+</body>
+</html>

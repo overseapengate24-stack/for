@@ -7,6 +7,7 @@
  */
 
 import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers } from '../lib/redis.js';
+import { ocrThaiIdFront, compareFaces } from '../lib/iapp.js';
 
 const ADMIN_KEY_ENV = () => (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
 const isAdminReq = (req) => String(req.headers['x-admin-key'] || '').trim() === ADMIN_KEY_ENV();
@@ -64,6 +65,7 @@ export default async function handler(req, res) {
           ...base,
           name: base.name || a.name || '',
           idNumber: a.idNumber, idType: a.idType, verifyStatus: a.verifyStatus,
+          kycProvider: a.kycProvider, kycScore: a.kycScore, kycAt: a.kycAt,
         });
       }
       const members = [...byEmail.values()].sort((x, y) =>
@@ -126,6 +128,69 @@ export default async function handler(req, res) {
 
     const e = String(email || '').trim().toLowerCase();
     if (!e) return res.status(400).json({ ok: false, error: 'ระบุ email' });
+
+    /* ── e-KYC step 1: OCR หน้าบัตรประชาชน ── */
+    if (req.body && req.body.kycOcr) {
+      const image = String(req.body.kycOcr.image || '');
+      if (!/^data:image\//.test(image)) return res.status(400).json({ ok: false, error: 'ไม่มีรูปบัตร' });
+      if (image.length > 1500000) return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป ลองย่อขนาดก่อน' });
+      try {
+        const r = await ocrThaiIdFront(image);
+        if (!r.idNumber || !/^\d{13}$/.test(r.idNumber)) {
+          return res.status(422).json({ ok: false, error: 'อ่านเลขบัตรไม่สำเร็จ ลองถ่ายใหม่ในที่แสงสว่างกว่านี้', detail: r.detectionScore });
+        }
+        return res.status(200).json({
+          ok: true,
+          idNumber: r.idNumber,
+          name: r.thName || r.enName || '',
+          dob: r.dob,
+          faceBase64: r.faceBase64,
+          detectionScore: r.detectionScore,
+        });
+      } catch (err) {
+        return res.status(502).json({ ok: false, error: err.message || 'เรียก iApp OCR ไม่สำเร็จ' });
+      }
+    }
+
+    /* ── e-KYC step 2: เทียบใบหน้าเซลฟี่กับรูปในบัตร ── */
+    if (req.body && req.body.kycVerify) {
+      const { idNumber, name, cardFace, selfie } = req.body.kycVerify;
+      const id = String(idNumber || '').trim();
+      if (!/^\d{13}$/.test(id)) return res.status(400).json({ ok: false, error: 'เลขบัตรไม่ถูกต้อง' });
+      if (!cardFace || !selfie) return res.status(400).json({ ok: false, error: 'ขาดรูปสำหรับเทียบใบหน้า' });
+      // เตรียม data URL ถ้ามาเป็น base64 ล้วน
+      const asDataUrl = (s) => (/^data:/.test(s) ? s : `data:image/jpeg;base64,${s}`);
+      try {
+        const cmp = await compareFaces(asDataUrl(cardFace), asDataUrl(selfie), 0.8);
+        if (!cmp.match) {
+          return res.status(200).json({ ok: false, verified: false, score: cmp.score, error: `ใบหน้าไม่ตรงกับบัตร (คะแนน ${Math.round(cmp.score*100)}%)` });
+        }
+        // บันทึกลงบัญชี
+        const acctEmail = String(req.body.email || '').trim().toLowerCase();
+        const now = new Date().toISOString();
+        const existing = await getAccount(id);
+        if (existing && String(existing.email || '').toLowerCase() !== acctEmail) {
+          return res.status(409).json({ ok: false, error: 'เลขนี้ถูกใช้กับบัญชีอื่นแล้ว — กรุณาติดต่อแอดมิน' });
+        }
+        // เก็บรูปบัตร (crop) + เซลฟี่ ไว้ใน account:img สำหรับให้แอดมินเห็น
+        await saveAccountImage(id, asDataUrl(cardFace));
+        await saveAccount(id, {
+          name: String(name || (existing && existing.name) || '').slice(0, 120),
+          idType: 'thai', idNumber: id,
+          email: acctEmail, contactEmail: acctEmail,
+          verifyStatus: 'APPROVED',           // e-KYC ผ่านอัตโนมัติ
+          kycProvider: 'iapp',
+          kycScore: Number(cmp.score.toFixed(4)),
+          kycAt: now,
+          createdAt: (existing && existing.createdAt) || now,
+        });
+        await saveUserProfile(acctEmail, { idType: 'thai', idNumber: id, registeredAt: now, kycScore: Number(cmp.score.toFixed(4)) });
+        try { await addKnownUser(acctEmail); } catch (e2) {}
+        return res.status(200).json({ ok: true, verified: true, score: cmp.score });
+      } catch (err) {
+        return res.status(502).json({ ok: false, error: err.message || 'เรียก iApp Face Compare ไม่สำเร็จ' });
+      }
+    }
 
     /* ── บันทึกการล็อกอิน Google (เรียกจากหน้าเว็บหลัง sign-in) ── */
     if (req.body && req.body.googleUser) {
