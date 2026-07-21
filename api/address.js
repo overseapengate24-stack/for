@@ -176,7 +176,10 @@ export default async function handler(req, res) {
         const acctEmail = String(req.body.email || '').trim().toLowerCase();
         const now = new Date().toISOString();
         const existing = await getAccount(id);
-        if (existing && String(existing.email || '').toLowerCase() !== acctEmail) {
+        const existingEmail = String((existing && existing.email) || '').trim().toLowerCase();
+        // 409 เฉพาะกรณีอันตราย: มีบัญชีเดิม + มีอีเมลชัดเจน + อีเมลไม่ตรง + verify ผ่านแล้ว
+        // (บัญชีเก่าไม่มี email หรือยังไม่ approve → อนุญาตให้เขียนทับได้)
+        if (existing && existingEmail && existingEmail !== acctEmail && existing.verifyStatus === 'APPROVED') {
           return res.status(409).json({ ok: false, error: 'เลขนี้ถูกใช้กับบัญชีอื่นแล้ว — กรุณาติดต่อแอดมิน' });
         }
         // เก็บรูปบัตร (crop) + เซลฟี่ ไว้ใน account:img สำหรับให้แอดมินเห็น
