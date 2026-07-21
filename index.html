@@ -1080,6 +1080,11 @@ body{font-variant-numeric:tabular-nums}
     <button class="modal-x" id="idModalClose" type="button" aria-label="ปิด">✕</button>
     <h3>ยืนยันตัวตนก่อนเริ่มสั่งซื้อ</h3>
     <p class="sub">กรุณากรอกเลขบัตรประชาชน 13 หลัก<br>เพื่อใช้ในพิธีการศุลกากรนำเข้าสินค้า</p>
+    <div style="margin:8px 0 14px">
+      <button class="btn btn-primary" id="idGoKycBtn" type="button" style="width:100%;max-width:320px">🔐 ยืนยันแบบ e-KYC (แนะนำ • เร็วที่สุด)</button>
+      <div style="font-size:11.5px;color:var(--ink-soft,#7C715B);margin-top:6px">สแกนบัตร + เซลฟี่ ตรวจอัตโนมัติใน 2 นาที</div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--ink-soft,#7C715B);margin:6px 0 10px">— หรือกรอกด้วยตัวเอง —</div>
     <input id="idNumberInput" type="text" inputmode="numeric" maxlength="13" placeholder="เลขบัตรประชาชน 13 หลัก"
            style="width:100%;max-width:320px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:16px;text-align:center;letter-spacing:1px;margin-bottom:8px" />
     <label for="idPhotoInput" id="idPhotoLabel"
@@ -1900,10 +1905,23 @@ async function checkProfile(){
       }else{
         profileOk = false;
         localStorage.removeItem(IDOK_KEY(email));
-        openIdModal();
+        // ยังไม่ยืนยันตัวตน → พาไปหน้า e-KYC อัตโนมัติ (ยกเว้นถ้ากดข้ามภายในเซสชันนี้)
+        if(sessionStorage.getItem('opg_skip_kyc') !== '1'){
+          goToVerify();
+        } else {
+          openIdModal();
+        }
       }
     }
   }catch(e){ /* เน็ตหลุด — ใช้ค่าแคชไปก่อน เดี๋ยวเช็คซ้ำตอนกดสั่งซื้อ */ }
+}
+
+/* พาลูกค้าไปทำ e-KYC — ใช้แทนการเด้ง modal เก่า
+   กันลูป: ถ้าอยู่บน /verify.html อยู่แล้ว ไม่ต้อง redirect ซ้ำ */
+function goToVerify(){
+  if(/\/verify\.html/i.test(location.pathname)) return;
+  const next = encodeURIComponent(location.pathname + location.hash);
+  location.href = '/verify.html?next=' + next;
 }
 
 /* ย่อรูปบัตรฝั่งเบราว์เซอร์ก่อนส่ง — ให้ไฟล์เล็กพอเก็บใน Redis */
@@ -1969,6 +1987,7 @@ async function saveIdNumber(){
 }
 
 $('#idSaveBtn').addEventListener('click', saveIdNumber);
+$('#idGoKycBtn')?.addEventListener('click', goToVerify);
 $('#idModalClose').addEventListener('click', closeIdModal);
 $('#idModal').addEventListener('click', (e)=>{ if(e.target.id==='idModal') closeIdModal(); });
 $('#idNumberInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') saveIdNumber(); });
