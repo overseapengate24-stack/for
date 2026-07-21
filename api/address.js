@@ -6,7 +6,7 @@
  * POST /api/address  body:{ email, profile:{ idNumber } } → บันทึกเลขบัตร ปชช.
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers, resetAllVerifications } from '../lib/redis.js';
 import { ocrThaiIdFront, compareFaces } from '../lib/iapp.js';
 
 const ADMIN_KEY_ENV = () => (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
@@ -103,6 +103,13 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     const { email, address, profile } = req.body || {};
+
+    /* ── (แอดมิน) รีเซ็ตการยืนยันตัวตนของสมาชิกทุกคน ── */
+    if (req.body && req.body.adminResetAllKyc) {
+      if (!isAdminReq(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
+      const r = await resetAllVerifications();
+      return res.status(200).json({ ok: true, ...r });
+    }
 
     /* ── (แอดมิน) ขอรูปบัตรของสมาชิก ── */
     if (req.body && req.body.adminGetIdImage) {
