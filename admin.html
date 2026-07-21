@@ -1856,6 +1856,24 @@ function verifyBadge(st, m){
 }
 
 $('membersBtn').addEventListener('click', openMembers);
+
+async function resetAllKyc(){
+  if(!confirm('⚠️ ยืนยันรีเซ็ตข้อมูลยืนยันตัวตนของสมาชิก "ทุกคน"?\n\nลูกค้าทุกคนจะต้องยืนยันตัวตนใหม่ตอนล็อกอินครั้งต่อไป (ออเดอร์/ที่อยู่/เครดิตไม่ถูกลบ)\n\nการกระทำนี้ย้อนกลับไม่ได้')) return;
+  const btn = document.getElementById('resetAllKycBtn');
+  btn.disabled = true; btn.textContent = 'กำลังลบ…';
+  try{
+    const r = await fetch(`${API_BASE}/api/address`, {
+      method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({ adminResetAllKyc: true })
+    });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'ลบไม่สำเร็จ');
+    toast(`✅ รีเซ็ตแล้ว — ลบบัญชีสมาชิก ${j.deletedAccounts} ราย + โปรไฟล์ ${j.deletedProfiles} ราย`);
+    membersCache = [];
+    renderMembers();
+  }catch(err){ toast('❌ ' + err.message); }
+  btn.disabled = false; btn.textContent = '🔄 รีเซ็ตยืนยันตัวตนทั้งหมด';
+}
 $('membersClose').addEventListener('click', () => $('membersModal').classList.remove('open'));
 $('membersModal').addEventListener('click', e => { if(e.target.id==='membersModal') $('membersModal').classList.remove('open'); });
 
@@ -1895,8 +1913,12 @@ function renderMembers(){
       <div style="color:var(--ink-soft)">›</div>
     </div>`).join('');
   $('membersBody').innerHTML = `
-    <input type="text" id="memberSearch" placeholder="🔍 ค้นหา ชื่อ / เลขบัตร / อีเมล…" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:12px;font-size:14px"/>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <input type="text" id="memberSearch" placeholder="🔍 ค้นหา ชื่อ / เลขบัตร / อีเมล…" style="flex:1;min-width:220px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px"/>
+      <button class="btn btn-sm" id="resetAllKycBtn" style="background:#b3392f;color:#fff;border:none;font-weight:700;white-space:nowrap" title="ลบข้อมูลยืนยันตัวตนของสมาชิกทุกคน">🔄 รีเซ็ตยืนยันตัวตนทั้งหมด</button>
+    </div>
     <div id="memberList">${rows}</div>`;
+  document.getElementById('resetAllKycBtn').addEventListener('click', resetAllKyc);
   const search = document.getElementById('memberSearch');
   search.addEventListener('input', () => {
     const f = search.value.trim().toLowerCase();
