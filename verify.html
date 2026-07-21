@@ -119,11 +119,13 @@ canvas{display:none}
       <video id="cam" autoplay playsinline muted></video>
       <canvas id="snap"></canvas>
       <img id="selfiePreview" class="preview" style="display:none" alt=""/>
+      <input id="selfieFile" type="file" accept="image/*" style="display:none"/>
 
       <div class="hint" id="hint3"></div>
       <div class="actions">
         <button class="btn btn-ghost" id="back3">← กลับ</button>
         <button class="btn btn-primary" id="snapBtn">📸 ถ่ายรูป</button>
+        <button class="btn btn-ghost" id="uploadSelfieBtn">📁 อัปโหลดรูปเซลฟี่แทน</button>
         <button class="btn btn-ghost" id="retakeBtn" style="display:none">↻ ถ่ายใหม่</button>
         <button class="btn btn-primary" id="submitBtn" style="display:none">✓ ยืนยันตัวตน</button>
       </div>
@@ -235,10 +237,14 @@ async function startCamera(){
     $('#cam').srcObject = stream;
     $('#cam').style.display='block';
     $('#selfiePreview').style.display='none';
-    $('#snapBtn').style.display=''; $('#retakeBtn').style.display='none'; $('#submitBtn').style.display='none';
+    $('#snapBtn').style.display=''; $('#uploadSelfieBtn').style.display='';
+    $('#retakeBtn').style.display='none'; $('#submitBtn').style.display='none';
   }catch(err){
-    hint.textContent = 'เปิดกล้องไม่ได้: ' + (err.message || 'ไม่อนุญาต') + ' — กรุณาอนุญาตกล้องในเบราว์เซอร์';
+    hint.textContent = 'เปิดกล้องไม่ได้ — กด "📁 อัปโหลดรูปเซลฟี่แทน" เพื่อเลือกไฟล์แทน';
     hint.style.color = 'var(--err)';
+    $('#cam').style.display='none';
+    $('#snapBtn').style.display='none';
+    $('#uploadSelfieBtn').style.display='';
   }
 }
 function stopCamera(){ if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } }
@@ -253,10 +259,31 @@ $('#snapBtn').addEventListener('click', ()=>{
   $('#selfiePreview').src = selfieDataUrl; $('#selfiePreview').style.display='block';
   $('#cam').style.display='none'; stopCamera();
   $('#snapBtn').style.display='none';
+  $('#uploadSelfieBtn').style.display='none';
   $('#retakeBtn').style.display=''; $('#submitBtn').style.display='';
 });
 
-$('#retakeBtn').addEventListener('click', ()=> startCamera());
+$('#retakeBtn').addEventListener('click', ()=>{
+  $('#selfieFile').value = '';
+  startCamera();
+});
+
+/* อัปโหลดรูปเซลฟี่แทนการใช้กล้อง */
+$('#uploadSelfieBtn').addEventListener('click', ()=> $('#selfieFile').click());
+$('#selfieFile').addEventListener('change', async (e)=>{
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  const hint = $('#hint3'); hint.textContent = '';
+  try{
+    selfieDataUrl = await fileToDataURL(f);
+    $('#selfiePreview').src = selfieDataUrl; $('#selfiePreview').style.display='block';
+    $('#cam').style.display='none'; stopCamera();
+    $('#snapBtn').style.display='none';
+    $('#uploadSelfieBtn').style.display='none';
+    $('#retakeBtn').style.display=''; $('#submitBtn').style.display='';
+  }catch(err){
+    hint.textContent = err.message || 'อ่านไฟล์ไม่สำเร็จ'; hint.style.color = 'var(--err)';
+  }
+});
 
 $('#submitBtn').addEventListener('click', async ()=>{
   const hint = $('#hint3'); hint.textContent=''; $('#submitBtn').disabled = true;
