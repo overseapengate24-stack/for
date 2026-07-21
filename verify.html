@@ -299,7 +299,7 @@ function showResult(pass, score, errMsg){
     $('#resIcon').textContent = '❌'; $('#resIcon').className = 'big err';
     $('#resTitle').textContent = 'ไม่สามารถยืนยันตัวตนได้';
     $('#resDetail').textContent = errMsg || 'ใบหน้าไม่ตรงกับบัตร กรุณาลองใหม่ในที่แสงสว่างกว่านี้';
-    $('#resScore').textContent = pct > 0 ? `คะแนนความตรง: ${pct}% (ต้องได้ ≥ 80%)` : '';
+    $('#resScore').textContent = pct > 0 ? `คะแนนความตรง: ${pct}% (ต้องได้ ≥ 50%)` : '';
     $('#resActions').innerHTML = `
       <button class="btn btn-primary" onclick="location.reload()">↻ ลองใหม่</button>
       <a class="btn btn-ghost" href="https://line.me/R/ti/p/@overseapengate" target="_blank">💬 ติดต่อแอดมิน</a>`;
