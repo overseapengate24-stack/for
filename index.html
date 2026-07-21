@@ -1078,7 +1078,16 @@ body{font-variant-numeric:tabular-nums}
     <!-- REGISTER FORM -->
     <div id="registerFormBox" style="display:none">
       <input id="rgName" type="text" placeholder="ชื่อ-นามสกุล" autocomplete="name" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
-      <input id="rgPhone" type="tel" inputmode="tel" placeholder="เบอร์โทรศัพท์" autocomplete="tel" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
+      <div style="width:100%;max-width:340px;margin:6px auto;display:flex;gap:6px">
+        <input id="rgPhone" type="tel" inputmode="tel" placeholder="เบอร์โทรศัพท์ (เช่น 0812345678)" autocomplete="tel" style="flex:1;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px" />
+        <button class="btn btn-primary btn-sm" id="rgSendOtp" type="button" style="white-space:nowrap;padding:0 14px">📱 ส่ง OTP</button>
+      </div>
+      <div id="rgOtpBox" style="display:none;width:100%;max-width:340px;margin:6px auto">
+        <input id="rgOtpCode" type="text" inputmode="numeric" maxlength="6" placeholder="กรอกรหัส OTP 6 หลัก" style="width:100%;padding:11px 14px;border:1px solid var(--brand,#9C8654);border-radius:10px;font-size:16px;text-align:center;letter-spacing:6px;font-weight:700" />
+        <div style="font-size:12px;color:var(--ink-soft,#7C715B);margin-top:4px;text-align:center">
+          <span id="rgOtpStatus">รหัสส่งไปที่ SMS แล้ว</span> · <a href="#" id="rgResendOtp" style="color:var(--brand-600,#7C6739)">ส่งอีกครั้ง</a>
+        </div>
+      </div>
       <input id="rgEmail" type="email" placeholder="อีเมล" autocomplete="email" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
       <input id="rgIdNumber" type="text" inputmode="numeric" maxlength="13" placeholder="เลขบัตรประชาชน 13 หลัก" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block;letter-spacing:1px;text-align:center" />
       <input id="rgPassword" type="password" placeholder="ตั้งรหัสผ่าน (อย่างน้อย 6 ตัว)" autocomplete="new-password" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
@@ -1803,6 +1812,27 @@ async function doEmailLogin(){
   btn.disabled = false; btn.textContent = oldText;
 }
 
+async function doSendOtp(isResend){
+  const phone = $('#rgPhone').value.trim();
+  const help = $('#rgHelp'); help.textContent = ''; help.style.color = 'var(--err,#b3392f)';
+  if(!/^\d{9,10}$/.test(phone.replace(/\D/g,''))){ help.textContent = 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (9-10 หลัก)'; return; }
+  const btn = $('#rgSendOtp'); btn.disabled = true; const oldText = btn.textContent; btn.textContent = 'กำลังส่ง…';
+  try{
+    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ otpSend:{ phone } }) });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'ส่ง OTP ไม่สำเร็จ');
+    $('#rgOtpBox').style.display = 'block';
+    $('#rgOtpStatus').textContent = 'รหัสส่งไปที่ SMS แล้ว (หมดอายุใน 5 นาที)';
+    $('#rgOtpCode').focus();
+    // ล็อกปุ่ม 60 วิ (rate limit)
+    let sec = 60; btn.textContent = `รอ ${sec} วิ`; btn.disabled = true;
+    const tick = setInterval(()=>{
+      sec--; if(sec<=0){ clearInterval(tick); btn.disabled=false; btn.textContent='📱 ส่งอีกครั้ง'; }
+      else btn.textContent = `รอ ${sec} วิ`;
+    }, 1000);
+  }catch(err){ help.textContent = err.message || 'ส่ง OTP ไม่สำเร็จ'; btn.disabled=false; btn.textContent=oldText; }
+}
+
 async function doRegister(){
   const name = $('#rgName').value.trim();
   const phone = $('#rgPhone').value.trim();
@@ -1810,6 +1840,7 @@ async function doRegister(){
   const idNumber = $('#rgIdNumber').value.trim();
   const password = $('#rgPassword').value;
   const confirmPassword = $('#rgConfirm').value;
+  const otpCode = $('#rgOtpCode') ? $('#rgOtpCode').value.trim() : '';
   const help = $('#rgHelp'); help.textContent = ''; help.style.color = 'var(--err,#b3392f)';
   if(!name){ help.textContent = 'กรุณากรอกชื่อ-นามสกุล'; return; }
   if(!phone){ help.textContent = 'กรุณากรอกเบอร์โทรศัพท์'; return; }
@@ -1817,9 +1848,10 @@ async function doRegister(){
   if(!/^\d{13}$/.test(idNumber)){ help.textContent = 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก'; return; }
   if(password.length < 6){ help.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
   if(password !== confirmPassword){ help.textContent = 'รหัสผ่านไม่ตรงกัน'; return; }
+  if(!/^\d{6}$/.test(otpCode)){ help.textContent = 'กรุณากด "ส่ง OTP" แล้วกรอกรหัส 6 หลักที่ได้รับ'; return; }
   const btn = $('#rgSubmit'); btn.disabled = true; const oldText = btn.textContent; btn.textContent = 'กำลังสมัคร…';
   try{
-    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ register:{ name, phone, email, password, confirmPassword, idNumber } }) });
+    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ register:{ name, phone, email, password, confirmPassword, idNumber, otpCode } }) });
     const j = await r.json();
     if(!j.ok) throw new Error(j.error || 'สมัครสมาชิกไม่สำเร็จ');
     const user = j.user;
@@ -2597,6 +2629,9 @@ $('#goRegister')?.addEventListener('click', (e)=>{ e.preventDefault(); switchAut
 $('#goLogin')?.addEventListener('click', (e)=>{ e.preventDefault(); switchAuthView('login'); });
 $('#liSubmit')?.addEventListener('click', doEmailLogin);
 $('#rgSubmit')?.addEventListener('click', doRegister);
+$('#rgSendOtp')?.addEventListener('click', ()=> doSendOtp(false));
+$('#rgResendOtp')?.addEventListener('click', (e)=>{ e.preventDefault(); doSendOtp(true); });
+$('#rgOtpCode')?.addEventListener('input', (e)=>{ e.target.value = e.target.value.replace(/\D/g,'').slice(0,6); });
 $('#liPassword')?.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doEmailLogin(); });
 $('#rgConfirm')?.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doRegister(); });
 document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeLoginModal(); });

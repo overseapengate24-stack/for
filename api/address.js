@@ -6,8 +6,9 @@
  * POST /api/address  body:{ email, profile:{ idNumber } } → บันทึกเลขบัตร ปชช.
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers, resetAllVerifications, bindEmailToId, getIdByEmail } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, getUserProfile, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, getAccountImage, saveAccountImage, saveGoogleUser, listGoogleUsers, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent } from '../lib/redis.js';
 import { ocrThaiIdFront, compareFaces } from '../lib/iapp.js';
+import { sendSMS, normalizePhone, makeOtp } from '../lib/tbs.js';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
 /* Password hashing — Node built-in scrypt (ไม่ต้องพึ่ง lib ภายนอก) */
@@ -129,6 +130,33 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { email, address, profile } = req.body || {};
 
+    /* ── OTP: ขอส่ง SMS ── */
+    if (req.body && req.body.otpSend) {
+      const phone = normalizePhone(req.body.otpSend.phone);
+      if (!/^66\d{8,10}$/.test(phone)) return res.status(400).json({ ok: false, error: 'รูปแบบเบอร์โทรไม่ถูกต้อง' });
+      if (await otpRateLimited(phone)) return res.status(429).json({ ok: false, error: 'ขอ OTP บ่อยเกินไป — กรุณารอ 60 วินาที' });
+      const code = makeOtp();
+      try {
+        await sendSMS(phone, `รหัสยืนยัน Oversea PenGate: ${code} (หมดอายุใน 5 นาที)`, { type: 'otp' });
+      } catch (err) {
+        return res.status(502).json({ ok: false, error: err.message || 'ส่ง SMS ไม่สำเร็จ' });
+      }
+      await saveOtp(phone, code, 300);
+      await markOtpSent(phone, 60);
+      return res.status(200).json({ ok: true, expiresIn: 300 });
+    }
+
+    /* ── OTP: ยืนยันรหัส ── */
+    if (req.body && req.body.otpVerify) {
+      const phone = normalizePhone(req.body.otpVerify.phone);
+      const code = String(req.body.otpVerify.code || '').trim();
+      if (!/^\d{6}$/.test(code)) return res.status(400).json({ ok: false, error: 'รหัส OTP ต้องเป็นตัวเลข 6 หลัก' });
+      const stored = await getOtp(phone);
+      if (!stored) return res.status(410).json({ ok: false, error: 'รหัสหมดอายุ กรุณาขอใหม่' });
+      if (stored !== code) return res.status(401).json({ ok: false, error: 'รหัส OTP ไม่ถูกต้อง' });
+      return res.status(200).json({ ok: true });
+    }
+
     /* ── สมัครสมาชิกใหม่ ── */
     if (req.body && req.body.register) {
       const r = req.body.register;
@@ -138,12 +166,19 @@ export default async function handler(req, res) {
       const password = String(r.password || '');
       const confirmPassword = String(r.confirmPassword || '');
       const idNumber = String(r.idNumber || '').trim();
+      const otpCode = String(r.otpCode || '').trim();
       if (!name) return res.status(400).json({ ok: false, error: 'กรุณากรอกชื่อ-นามสกุล' });
       if (!phone || phone.replace(/\D/g, '').length < 9) return res.status(400).json({ ok: false, error: 'เบอร์โทรศัพท์ไม่ถูกต้อง' });
       if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'รูปแบบอีเมลไม่ถูกต้อง' });
       if (password.length < 6) return res.status(400).json({ ok: false, error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' });
       if (password !== confirmPassword) return res.status(400).json({ ok: false, error: 'รหัสผ่านไม่ตรงกัน' });
       if (!validThaiId(idNumber)) return res.status(400).json({ ok: false, error: 'เลขบัตรประชาชนไม่ถูกต้อง' });
+      // ต้องยืนยัน OTP เบอร์นี้ก่อน
+      const phoneKey = normalizePhone(phone);
+      const storedOtp = await getOtp(phoneKey);
+      if (!storedOtp || !otpCode || storedOtp !== otpCode) {
+        return res.status(401).json({ ok: false, error: 'ยืนยัน OTP ไม่ผ่าน — กรุณาขอ OTP แล้วกรอกรหัส' });
+      }
       // เช็คซ้ำ
       const existingByEmail = await getIdByEmail(email);
       if (existingByEmail) return res.status(409).json({ ok: false, error: 'อีเมลนี้ถูกใช้สมัครแล้ว — กรุณาเข้าสู่ระบบ' });
@@ -161,6 +196,7 @@ export default async function handler(req, res) {
       await bindEmailToId(email, idNumber);
       await saveUserProfile(email, { idType: 'thai', idNumber, registeredAt: now });
       try { await addKnownUser(email); } catch (e2) {}
+      try { await delOtp(phoneKey); } catch (e2) {}   // ใช้ OTP แล้ว ทิ้ง
       return res.status(200).json({ ok: true, user: safeAccount(acct) });
     }
 
