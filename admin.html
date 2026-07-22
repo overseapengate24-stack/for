@@ -1191,7 +1191,6 @@ function openDetail(no) {
     <div class="detail-row"><span class="k">ชื่อ</span><span class="v">${o.customer?.name||'—'}</span></div>
     <div class="detail-row"><span class="k">LINE</span><span class="v">${o.customer?.lineId||'—'}</span></div>
     ${o.customer?.email?`<div class="detail-row"><span class="k">อีเมล</span><span class="v">${o.customer.email}</span></div>`:''}
-    ${o.customer?.email?`<div class="detail-row"><span class="k">🪪 บัตรประชาชน</span><span class="v" id="detailIdNum" style="font-family:monospace;letter-spacing:.5px">กำลังโหลด…</span></div>`:''}
     ${o.customer?.address?.detail?`<div class="detail-row"><span class="k">📍 ที่อยู่จัดส่ง</span><span class="v" style="white-space:pre-wrap">${escapeHtml(o.customer.address.detail)}${o.customer.address.phone?`\nโทร: ${escapeHtml(o.customer.address.phone)}`:''}</span></div>`:''}
     ${o.note?`<div class="detail-row"><span class="k">หมายเหตุ</span><span class="v">${o.note}</span></div>`:''}
     <div style="font-size:13px;font-weight:600;color:var(--ink-soft);margin:16px 0 8px">📦 สินค้า (${(o.items||[]).length} รายการ)</div>
@@ -1205,24 +1204,6 @@ function openDetail(no) {
     <div class="detail-row" style="font-size:12px;color:var(--ink-xsoft)"><span class="k">อัปเดต</span><span class="v">${formatDate(o.updatedAt)}</span></div>`;
 
   $('detailModal').classList.add('open');
-  loadDetailIdNum(o.customer?.email);
-}
-
-/* ดึงเลขบัตร ปชช. เต็มของลูกค้า (ใช้ x-admin-key) มาแสดงใน detail modal */
-async function loadDetailIdNum(email){
-  const el = document.getElementById('detailIdNum');
-  if (!el) return;
-  if (!email){ el.textContent = '—'; return; }
-  try{
-    const r = await fetch(`${API_BASE}/api/address?email=${encodeURIComponent(String(email).toLowerCase())}&profile=1&full=1`, { headers:{ 'x-admin-key': adminKey } });
-    const j = await r.json();
-    if (j.ok && j.registered){
-      el.textContent = `${j.idNumber || j.idMasked} (บัตร ปชช.)`;
-    } else {
-      el.textContent = 'ยังไม่ได้ยืนยันตัวตน';
-      el.style.color = 'var(--ink-xsoft)';
-    }
-  }catch(e){ el.textContent = 'โหลดไม่สำเร็จ'; }
 }
 $('detailModalClose').addEventListener('click', () => $('detailModal').classList.remove('open'));
 $('detailClose').addEventListener('click', () => $('detailModal').classList.remove('open'));
@@ -1846,15 +1827,6 @@ function renderTopups(){
    ============================================================ */
 let membersCache = [];
 
-function verifyBadge(st, m){
-  const score = m && m.kycScore ? ` ${Math.round(m.kycScore*100)}%` : '';
-  const kycTag = m && m.kycProvider === 'iapp' ? ' e-KYC' : '';
-  if(st === 'APPROVED') return `<span style="font-size:11.5px;font-weight:700;color:#2e7d4f;background:#e6f4ea;border:1px solid #b7e0c5;border-radius:999px;padding:3px 10px;white-space:nowrap">✅ ยืนยันแล้ว${kycTag}${score}</span>`;
-  if(st === 'REJECTED') return `<span style="font-size:11.5px;font-weight:700;color:#b3392f;background:#fdecea;border:1px solid #f5c6c1;border-radius:999px;padding:3px 10px;white-space:nowrap">✕ ปฏิเสธ</span>`;
-  if(st === 'PENDING')  return `<span style="font-size:11.5px;font-weight:700;color:#8a6d1a;background:#fdf6e3;border:1px solid #ead9a6;border-radius:999px;padding:3px 10px;white-space:nowrap">⏳ รอตรวจ</span>`;
-  return `<span style="font-size:11.5px;color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px 10px;white-space:nowrap">ยังไม่ยืนยันตัวตน</span>`;
-}
-
 $('membersBtn').addEventListener('click', openMembers);
 
 async function resetAllKyc(){
@@ -1909,7 +1881,6 @@ function renderMembers(){
              <div style="font-size:12px;color:var(--ink-soft)">🪪 บัตรประชาชน</div>`
           : `<div style="font-size:12.5px;color:var(--ink-soft)">ยังไม่กรอกเลขบัตร</div>`}
       </div>
-      ${verifyBadge(m.verifyStatus, m)}
       <div style="color:var(--ink-soft)">›</div>
     </div>`).join('');
   $('membersBody').innerHTML = `
@@ -1960,19 +1931,7 @@ async function openMemberOrders(m){
       <div style="font-weight:700">${escapeHtml(m.name || '—')}</div>
       <div style="font-size:12.5px;color:var(--ink-soft)">${escapeHtml(m.email || '')}${m.phone ? ' · 📞 ' + escapeHtml(m.phone) : ''}</div>
       ${m.idNumber ? `<div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700">${escapeHtml(m.idNumber)}</div><div style="font-size:12.5px;color:var(--ink-soft)">🪪 บัตรประชาชน</div>` : `<div style="font-size:12.5px;color:var(--ink-soft)">ยังไม่กรอกเลขบัตร</div>`}
-      ${verifyBadge(m.verifyStatus, m)}
     </div>
-    ${m.idNumber ? `
-    <div style="margin-bottom:14px">
-      <button class="btn btn-ghost btn-sm" id="memberIdImgBtn">🪪 ดูรูปบัตรเพื่อตรวจสอบ</button>
-      <div id="memberIdImgBox" style="display:none;margin-top:10px;text-align:center">
-        <img id="memberIdImg" alt="รูปบัตร" style="max-width:100%;max-height:340px;border-radius:12px;border:1.5px solid var(--border)"/>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-          <button class="btn btn-sm" id="memberApproveBtn" style="background:#2e7d4f;color:#fff;border:none;font-weight:700">✅ อนุมัติ — เลขตรงกับบัตร</button>
-          <button class="btn btn-sm" id="memberRejectBtn" style="background:#b3392f;color:#fff;border:none;font-weight:700">✕ ปฏิเสธ</button>
-        </div>
-      </div>
-    </div>` : ''}
     ${summary}`;
   const rows = sorted.map(o => `
     <div class="member-order" data-no="${escapeHtml(o.orderNo)}" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--surface)">
@@ -1987,47 +1946,6 @@ async function openMemberOrders(m){
   document.getElementById('memberBackBtn').addEventListener('click', renderMembers);
   document.querySelectorAll('.member-order').forEach(el =>
     el.addEventListener('click', () => openDetail(el.dataset.no)));
-
-  /* ดูรูปบัตร + อนุมัติ/ปฏิเสธ — มีเฉพาะสมาชิกที่กรอกเลขบัตรแล้ว */
-  if(!document.getElementById('memberIdImgBtn')) return;
-  document.getElementById('memberIdImgBtn').addEventListener('click', async () => {
-    const box = document.getElementById('memberIdImgBox');
-    if(box.style.display !== 'none'){ box.style.display = 'none'; return; }
-    const btn = document.getElementById('memberIdImgBtn');
-    btn.disabled = true; btn.textContent = 'กำลังโหลดรูป…';
-    try{
-      const r = await fetch(`${API_BASE}/api/address`, {
-        method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': adminKey },
-        body: JSON.stringify({ adminGetIdImage: { idNumber: m.idNumber } })
-      });
-      const j = await r.json();
-      if(!j.ok) throw new Error(j.error || 'โหลดรูปไม่สำเร็จ');
-      if(!j.image){ toast('สมาชิกรายนี้ไม่มีรูปบัตรในระบบ'); }
-      else{
-        document.getElementById('memberIdImg').src = j.image;
-        box.style.display = 'block';
-      }
-    }catch(err){ toast('❌ ' + err.message); }
-    btn.disabled = false; btn.textContent = '🪪 ดูรูปบัตรเพื่อตรวจสอบ';
-  });
-  const doVerify = async (action) => {
-    if(!confirm(action === 'approve' ? `ยืนยันว่าเลข ${m.idNumber} ตรงกับรูปบัตร?` : 'ปฏิเสธการยืนยันตัวตนของสมาชิกรายนี้?')) return;
-    try{
-      const r = await fetch(`${API_BASE}/api/address`, {
-        method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': adminKey },
-        body: JSON.stringify({ verify: { idNumber: m.idNumber, action } })
-      });
-      const j = await r.json();
-      if(!j.ok) throw new Error(j.error || 'บันทึกไม่สำเร็จ');
-      m.verifyStatus = j.account.verifyStatus;
-      const i = membersCache.findIndex(x => x.idNumber === m.idNumber);
-      if(i >= 0) membersCache[i] = { ...membersCache[i], verifyStatus: m.verifyStatus };
-      toast(action === 'approve' ? '✅ อนุมัติแล้ว' : '✕ ปฏิเสธแล้ว');
-      openMemberOrders(m);
-    }catch(err){ toast('❌ ' + err.message); }
-  };
-  document.getElementById('memberApproveBtn').addEventListener('click', () => doVerify('approve'));
-  document.getElementById('memberRejectBtn').addEventListener('click', () => doVerify('reject'));
 }
 
 async function actTopup(id, action){

@@ -125,7 +125,6 @@
   .nav-links{display:none;align-items:center;gap:18px;margin-right:18px;white-space:nowrap}
   .nav-links a{padding:10px 16px;border-radius:10px;font-weight:600;color:var(--ink-soft);text-decoration:none;font-size:15px}
   .nav-links a:hover{background:var(--brand-50);color:var(--brand-600)}
-  @keyframes verifyPulse{0%,100%{transform:scale(1);box-shadow:0 2px 8px rgba(217,119,6,.4)}50%{transform:scale(1.04);box-shadow:0 3px 14px rgba(217,119,6,.6)}}
   #userChip{display:none;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);
     padding:6px 10px 6px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
   #userChip img{width:30px;height:30px;border-radius:50%}
@@ -1102,19 +1101,6 @@ body{font-variant-numeric:tabular-nums}
   </div>
 </div>
 
-<!-- ID VERIFY MODAL — พาไปหน้ายืนยันตัวตน e-KYC -->
-<div id="idModal" class="modal-overlay" aria-hidden="true">
-  <div class="modal-card">
-    <button class="modal-x" id="idModalClose" type="button" aria-label="ปิด">✕</button>
-    <h3>ยืนยันตัวตนก่อนเริ่มสั่งซื้อ</h3>
-    <p class="sub">สแกนบัตรประชาชน + เซลฟี่ ตรวจอัตโนมัติใน 2 นาที<br>เพื่อใช้ในพิธีการศุลกากรนำเข้าสินค้า</p>
-    <div style="margin:14px 0">
-      <button class="btn btn-primary" id="idGoKycBtn" type="button" style="width:100%;max-width:320px">🔐 เริ่มยืนยันตัวตน e-KYC</button>
-    </div>
-    <div class="modal-help" style="margin-top:12px;font-size:12px">ข้อมูลถูกเก็บอย่างปลอดภัย ใช้เพื่อการนำเข้าสินค้าเท่านั้น · <a href="/privacy.html" target="_blank" style="color:var(--brand-600,#7C6739);text-decoration:underline">นโยบายความเป็นส่วนตัว</a></div>
-  </div>
-</div>
-
 <!-- HEADER -->
 <header class="site">
   <div class="wrap nav">
@@ -1134,7 +1120,6 @@ body{font-variant-numeric:tabular-nums}
       <a href="/reviews.html">รีวิว</a>
       <a href="#contact">ติดต่อ</a>
     </nav>
-    <button class="btn btn-sm" id="verifyPending" type="button" style="display:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;font-weight:700;box-shadow:0 2px 8px rgba(217,119,6,.4);animation:verifyPulse 2s ease-in-out infinite" title="กดเพื่อยืนยันตัวตน">🔒 ยืนยันตัวตน</button>
     <a class="btn btn-line btn-sm" id="lineFriend" href="https://line.me/R/ti/p/@overseapengate" target="_blank" rel="noopener">เพิ่มเพื่อน LINE</a>
     <button class="btn btn-primary btn-sm" id="loginBtn" type="button">เข้าสู่ระบบ</button>
     <div id="userChip">
@@ -1884,8 +1869,6 @@ function setLoggedIn(user){
   updatePreview();
   renderMyOrders();
   loadAddress();
-  setTimeout(()=>{ try{ checkProfile(); }catch(e){} }, 0); // เช็คเลขบัตร ปชช. หลังล็อกอิน
-  try{ updateVerifyBadge(); }catch(e){}
   if(location.hash === '#addresses' && typeof openAddrPage === 'function') openAddrPage();
 }
 
@@ -1898,7 +1881,6 @@ function setLoggedOut(){
   $('#loginBtn').style.display = 'inline-flex';
   updateAuthState();
   renderMyOrders();
-  try{ updateVerifyBadge(); }catch(e){}
 }
 
 /* ออกจากระบบจริง (กดปุ่ม "ออก") — ล้างบัญชีถาวร */
@@ -1926,54 +1908,6 @@ function showLoginHelp(msg){ $('#loginHelp').textContent = msg; }
 $('#logoutBtn').addEventListener('click', doLogout);
 $('#trackLoginBtn')?.addEventListener('click', openLoginModal);
 
-/* ============================================================
-   ID VERIFY — พาไปหน้า e-KYC อัตโนมัติหลังล็อกอิน
-   ============================================================ */
-let profileOk = false;
-
-function openIdModal(){ const m=$('#idModal'); m.classList.add('open'); m.setAttribute('aria-hidden','false'); }
-function closeIdModal(){ const m=$('#idModal'); m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }
-
-const IDOK_KEY = (email)=> 'opg_idok_' + String(email||'').toLowerCase();
-
-async function checkProfile(){
-  if(!currentUser || !currentUser.email) return;
-  const email = currentUser.email.toLowerCase();
-  if(localStorage.getItem(IDOK_KEY(email)) === '1') profileOk = true;
-  try{
-    const r = await fetch('/api/address?email=' + encodeURIComponent(email) + '&profile=1');
-    const j = await r.json();
-    if(j && j.ok){
-      if(j.registered){
-        profileOk = true;
-        localStorage.setItem(IDOK_KEY(email), '1');
-      } else {
-        profileOk = false;
-        localStorage.removeItem(IDOK_KEY(email));
-      }
-      try{ updateVerifyBadge(); }catch(e){}
-    }
-  }catch(e){ /* เน็ตหลุด */ }
-}
-
-/* พาลูกค้าไปทำ e-KYC — กันลูป: ถ้าอยู่บน /verify.html อยู่แล้ว ไม่ต้อง redirect ซ้ำ */
-function goToVerify(){
-  if(/\/verify\.html/i.test(location.pathname)) return;
-  const next = encodeURIComponent(location.pathname + location.hash);
-  location.href = '/verify.html?next=' + next;
-}
-
-$('#idGoKycBtn')?.addEventListener('click', goToVerify);
-$('#verifyPending')?.addEventListener('click', goToVerify);
-$('#idModalClose').addEventListener('click', closeIdModal);
-
-/* แสดง/ซ่อนแถบ "🔒 ยืนยันตัวตน" ในหัวเว็บ */
-function updateVerifyBadge(){
-  const el = document.getElementById('verifyPending'); if(!el) return;
-  const shouldShow = !!(currentUser && currentUser.email) && !profileOk;
-  el.style.display = shouldShow ? '' : 'none';
-}
-$('#idModal').addEventListener('click', (e)=>{ if(e.target.id==='idModal') closeIdModal(); });
 
 /* ============================================================
    DETECT PLATFORM — อัปเกรด รองรับ URL หลายรูปแบบ
@@ -2418,7 +2352,6 @@ $('#orderForm').addEventListener('submit', async (e)=>{
   const lineId = $('#lineId').value.trim();
   if(!lineId){ flashAlert('กรุณากรอกไอดี LINE หรือเบอร์โทร เพื่อให้ทีมงานติดต่อกลับ'); return; }
   if(!currentUser || !currentUser.email){ flashAlert('กรุณาเข้าสู่ระบบก่อนสร้างเลขออเดอร์'); openLoginModal(); return; }
-  if(!profileOk){ flashAlert('กรุณากรอกเลขบัตรประชาชน ก่อนสั่งซื้อ'); openIdModal(); return; }
   const user = currentUser;
   const payload = { customer:{ name:user.name||'', email:user.email||'', lineId, phone:'' }, items, note:$('#orderNote').value.trim() };
   const btn = e.submitter; if(btn){ btn.disabled=true; btn.dataset.t=btn.textContent; btn.textContent='กำลังส่ง…'; }
