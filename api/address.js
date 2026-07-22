@@ -6,7 +6,7 @@
  * GET  /api/address?members=1             → (แอดมิน) รายชื่อสมาชิก
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent, saveAccountImage, getAccountImage } from '../lib/redis.js';
 import { sendSMS, normalizePhone, makeOtp } from '../lib/tbs.js';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
@@ -73,6 +73,8 @@ export default async function handler(req, res) {
         email: String(a.email || '').toLowerCase(),
         phone: a.phone || '',
         idNumber: a.idNumber || '',
+        internalId: a.internalId || '',
+        hasIdImage: !!a.hasIdImage,
         idType: a.idType || 'thai',
         createdAt: a.createdAt || '',
       })).sort((x, y) => String(y.createdAt || '').localeCompare(String(x.createdAt || '')));
@@ -128,39 +130,53 @@ export default async function handler(req, res) {
       const email = String(r.email || '').trim().toLowerCase().slice(0, 120);
       const password = String(r.password || '');
       const confirmPassword = String(r.confirmPassword || '');
-      const idNumber = String(r.idNumber || '').trim();
+      const idImage = String(r.idImage || '');
       const otpCode = String(r.otpCode || '').trim();
       if (!name) return res.status(400).json({ ok: false, error: 'กรุณากรอกชื่อ-นามสกุล' });
       if (!phone || phone.replace(/\D/g, '').length < 9) return res.status(400).json({ ok: false, error: 'เบอร์โทรศัพท์ไม่ถูกต้อง' });
       if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'รูปแบบอีเมลไม่ถูกต้อง' });
       if (password.length < 6) return res.status(400).json({ ok: false, error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' });
       if (password !== confirmPassword) return res.status(400).json({ ok: false, error: 'รหัสผ่านไม่ตรงกัน' });
-      if (!validThaiId(idNumber)) return res.status(400).json({ ok: false, error: 'เลขบัตรประชาชนไม่ถูกต้อง' });
+      if (!/^data:image\/(jpeg|png|webp);base64,/.test(idImage)) return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน' });
+      if (idImage.length > 900000) return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป กรุณาลองใหม่' });
       // ต้องยืนยัน OTP เบอร์นี้ก่อน
       const phoneKey = normalizePhone(phone);
       const storedOtp = await getOtp(phoneKey);
       if (!storedOtp || !otpCode || storedOtp !== otpCode) {
         return res.status(401).json({ ok: false, error: 'ยืนยัน OTP ไม่ผ่าน — กรุณาขอ OTP แล้วกรอกรหัส' });
       }
-      // เช็คซ้ำ
+      // เช็คอีเมลซ้ำ
       const existingByEmail = await getIdByEmail(email);
       if (existingByEmail) return res.status(409).json({ ok: false, error: 'อีเมลนี้ถูกใช้สมัครแล้ว — กรุณาเข้าสู่ระบบ' });
-      const existingById = await getAccount(idNumber);
-      if (existingById) return res.status(409).json({ ok: false, error: 'เลขบัตรประชาชนนี้ถูกใช้สมัครแล้ว' });
+      // สร้าง internal id (hex 16 ตัว) — แอดมินตรวจเลขจริงจากรูปบัตรเอง
+      const internalId = randomBytes(8).toString('hex').toUpperCase();
       const now = new Date().toISOString();
       const acct = {
-        name, phone, email, idNumber,
+        name, phone, email,
+        idNumber: '',           // แอดมินอ่านจากรูปภาพเอง
         idType: 'thai',
+        hasIdImage: true,
+        internalId,
         passwordHash: hashPassword(password),
         verifyStatus: 'NONE',
         createdAt: now,
       };
-      await saveAccount(idNumber, acct);
-      await bindEmailToId(email, idNumber);
-      await saveUserProfile(email, { idType: 'thai', idNumber, registeredAt: now });
+      await saveAccountImage(internalId, idImage);
+      await saveAccount(internalId, acct);
+      await bindEmailToId(email, internalId);
+      await saveUserProfile(email, { idType: 'thai', registeredAt: now });
       try { await addKnownUser(email); } catch (e2) {}
-      try { await delOtp(phoneKey); } catch (e2) {}   // ใช้ OTP แล้ว ทิ้ง
+      try { await delOtp(phoneKey); } catch (e2) {}
       return res.status(200).json({ ok: true, user: safeAccount(acct) });
+    }
+
+    /* ── (แอดมิน) ขอรูปบัตรของสมาชิก ── */
+    if (req.body && req.body.adminGetIdImage) {
+      if (!isAdminReq(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
+      const key = String(req.body.adminGetIdImage.internalId || req.body.adminGetIdImage.idNumber || '').trim();
+      if (!key) return res.status(400).json({ ok: false, error: 'ระบุ internalId' });
+      const image = await getAccountImage(key);
+      return res.status(200).json({ ok: true, image: image || null });
     }
 
     /* ── เข้าสู่ระบบด้วยอีเมล + รหัสผ่าน ── */
