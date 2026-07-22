@@ -1088,7 +1088,12 @@ body{font-variant-numeric:tabular-nums}
         </div>
       </div>
       <input id="rgEmail" type="email" placeholder="อีเมล" autocomplete="email" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
-      <input id="rgIdNumber" type="text" inputmode="numeric" maxlength="13" placeholder="เลขบัตรประชาชน 13 หลัก" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block;letter-spacing:1px;text-align:center" />
+      <label for="rgIdImageInput" id="rgIdImageLabel"
+             style="display:block;width:100%;max-width:340px;margin:6px auto;padding:12px 14px;border:1.5px dashed var(--brand,#9C8654);border-radius:10px;font-size:13.5px;color:var(--brand-600,#7C6739);cursor:pointer;background:var(--brand-50,#F6F0E1);text-align:center">
+        📷 ถ่ายรูป / เลือกรูปบัตรประชาชน
+      </label>
+      <input id="rgIdImageInput" type="file" accept="image/*" capture="environment" style="display:none" />
+      <img id="rgIdImagePreview" alt="" style="display:none;max-width:220px;max-height:140px;border-radius:10px;margin:6px auto;border:1px solid var(--line,#ddd);object-fit:cover" />
       <input id="rgPassword" type="password" placeholder="ตั้งรหัสผ่าน (อย่างน้อย 6 ตัว)" autocomplete="new-password" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
       <input id="rgConfirm" type="password" placeholder="ยืนยันรหัสผ่าน" autocomplete="new-password" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
       <div class="modal-help" id="rgHelp" style="min-height:20px;margin-top:6px"></div>
@@ -1818,11 +1823,30 @@ async function doSendOtp(isResend){
   }catch(err){ help.textContent = err.message || 'ส่ง OTP ไม่สำเร็จ'; btn.disabled=false; btn.textContent=oldText; }
 }
 
+/* ย่อรูปบัตรฝั่งเบราว์เซอร์ก่อนส่ง ให้ไฟล์เล็กพอเก็บใน Redis */
+let rgIdImageData = '';
+function rgFileToResizedDataURL(file, maxW = 1000, quality = 0.75){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, maxW / img.width);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('อ่านไฟล์รูปไม่สำเร็จ')); };
+    img.src = url;
+  });
+}
+
 async function doRegister(){
   const name = $('#rgName').value.trim();
   const phone = $('#rgPhone').value.trim();
   const email = $('#rgEmail').value.trim().toLowerCase();
-  const idNumber = $('#rgIdNumber').value.trim();
   const password = $('#rgPassword').value;
   const confirmPassword = $('#rgConfirm').value;
   const otpCode = $('#rgOtpCode') ? $('#rgOtpCode').value.trim() : '';
@@ -1830,13 +1854,13 @@ async function doRegister(){
   if(!name){ help.textContent = 'กรุณากรอกชื่อ-นามสกุล'; return; }
   if(!phone){ help.textContent = 'กรุณากรอกเบอร์โทรศัพท์'; return; }
   if(!/^\S+@\S+\.\S+$/.test(email)){ help.textContent = 'รูปแบบอีเมลไม่ถูกต้อง'; return; }
-  if(!/^\d{13}$/.test(idNumber)){ help.textContent = 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก'; return; }
+  if(!rgIdImageData){ help.textContent = 'กรุณาแนบรูปถ่ายบัตรประชาชน'; return; }
   if(password.length < 6){ help.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
   if(password !== confirmPassword){ help.textContent = 'รหัสผ่านไม่ตรงกัน'; return; }
   if(!/^\d{6}$/.test(otpCode)){ help.textContent = 'กรุณากด "ส่ง OTP" แล้วกรอกรหัส 6 หลักที่ได้รับ'; return; }
   const btn = $('#rgSubmit'); btn.disabled = true; const oldText = btn.textContent; btn.textContent = 'กำลังสมัคร…';
   try{
-    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ register:{ name, phone, email, password, confirmPassword, idNumber, otpCode } }) });
+    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ register:{ name, phone, email, password, confirmPassword, idImage: rgIdImageData, otpCode } }) });
     const j = await r.json();
     if(!j.ok) throw new Error(j.error || 'สมัครสมาชิกไม่สำเร็จ');
     const user = j.user;
@@ -1847,10 +1871,24 @@ async function doRegister(){
   btn.disabled = false; btn.textContent = oldText;
 }
 
-// input filter — เลขบัตร 13 หลักตัวเลขล้วน
+// รับไฟล์รูปบัตร → ย่อ → พรีวิว
 document.addEventListener('DOMContentLoaded', ()=>{
-  const idInp = document.getElementById('rgIdNumber');
-  if(idInp){ idInp.addEventListener('input', (e)=>{ e.target.value = e.target.value.replace(/\D/g,'').slice(0,13); }); }
+  const inp = document.getElementById('rgIdImageInput');
+  if(!inp) return;
+  inp.addEventListener('change', async (e)=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const help = document.getElementById('rgHelp'); help.textContent = '';
+    try{
+      rgIdImageData = await rgFileToResizedDataURL(f);
+      const pv = document.getElementById('rgIdImagePreview');
+      pv.src = rgIdImageData; pv.style.display = 'block';
+      document.getElementById('rgIdImageLabel').textContent = '✅ แนบรูปแล้ว — กดเพื่อเปลี่ยนรูป';
+    }catch(err){
+      rgIdImageData = '';
+      help.textContent = err.message || 'อ่านไฟล์รูปไม่สำเร็จ กรุณาลองใหม่';
+      help.style.color = 'var(--err,#b3392f)';
+    }
+  });
 });
 
 function setLoggedIn(user){
