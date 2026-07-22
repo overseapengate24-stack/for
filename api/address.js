@@ -7,7 +7,7 @@
  */
 
 import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent, saveAccountImage, getAccountImage } from '../lib/redis.js';
-import { sendSMS, normalizePhone, makeOtp } from '../lib/tbs.js';
+import { sendSMS, normalizePhone, makeOtp, requestOtp, verifyOtp } from '../lib/tbs.js';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
 /* Password hashing — Node built-in scrypt (ไม่ต้องพึ่ง lib ภายนอก) */
@@ -100,26 +100,35 @@ export default async function handler(req, res) {
       const phone = normalizePhone(req.body.otpSend.phone);
       if (!/^66\d{8,10}$/.test(phone)) return res.status(400).json({ ok: false, error: 'รูปแบบเบอร์โทรไม่ถูกต้อง' });
       if (await otpRateLimited(phone)) return res.status(429).json({ ok: false, error: 'ขอ OTP บ่อยเกินไป — กรุณารอ 60 วินาที' });
-      const code = makeOtp();
+      // ให้ TBS OTP application สร้างรหัส + ส่ง SMS ด้วย sender OTP_SMS ที่ approve แล้ว
+      let token;
       try {
-        await sendSMS(phone, `รหัสยืนยัน Oversea PenGate: ${code} (หมดอายุใน 5 นาที)`, { type: 'otp' });
+        const r = await requestOtp(phone);
+        token = r.token;
+        if (!token) throw new Error('TBS ไม่คืน token กลับมา');
       } catch (err) {
-        return res.status(502).json({ ok: false, error: err.message || 'ส่ง SMS ไม่สำเร็จ' });
+        return res.status(502).json({ ok: false, error: err.message || 'ส่ง OTP ไม่สำเร็จ' });
       }
-      await saveOtp(phone, code, 300);
+      // เก็บ TBS token ไว้ใน Redis (แทนที่จะเก็บรหัสเอง) — 5 นาที
+      await saveOtp(phone, token, 300);
       await markOtpSent(phone, 60);
       return res.status(200).json({ ok: true, expiresIn: 300 });
     }
 
-    /* ── OTP: ยืนยันรหัส ── */
+    /* ── OTP: ยืนยันรหัส (เช็คก่อนเข้าสมัครก็ได้) ── */
     if (req.body && req.body.otpVerify) {
       const phone = normalizePhone(req.body.otpVerify.phone);
       const code = String(req.body.otpVerify.code || '').trim();
       if (!/^\d{6}$/.test(code)) return res.status(400).json({ ok: false, error: 'รหัส OTP ต้องเป็นตัวเลข 6 หลัก' });
-      const stored = await getOtp(phone);
-      if (!stored) return res.status(410).json({ ok: false, error: 'รหัสหมดอายุ กรุณาขอใหม่' });
-      if (stored !== code) return res.status(401).json({ ok: false, error: 'รหัส OTP ไม่ถูกต้อง' });
-      return res.status(200).json({ ok: true });
+      const token = await getOtp(phone);
+      if (!token) return res.status(410).json({ ok: false, error: 'รหัสหมดอายุ กรุณาขอใหม่' });
+      try {
+        const v = await verifyOtp(token, code);
+        if (!v.valid) return res.status(401).json({ ok: false, error: 'รหัส OTP ไม่ถูกต้อง' });
+        return res.status(200).json({ ok: true });
+      } catch (err) {
+        return res.status(502).json({ ok: false, error: err.message || 'ตรวจสอบ OTP ไม่สำเร็จ' });
+      }
     }
 
     /* ── สมัครสมาชิกใหม่ ── */
@@ -139,11 +148,17 @@ export default async function handler(req, res) {
       if (password !== confirmPassword) return res.status(400).json({ ok: false, error: 'รหัสผ่านไม่ตรงกัน' });
       if (!/^data:image\/(jpeg|png|webp);base64,/.test(idImage)) return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน' });
       if (idImage.length > 900000) return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป กรุณาลองใหม่' });
-      // ต้องยืนยัน OTP เบอร์นี้ก่อน
+      // ต้องยืนยัน OTP เบอร์นี้ก่อน — verify กับ TBS ด้วย token ที่เก็บไว้ตอน otpSend
       const phoneKey = normalizePhone(phone);
-      const storedOtp = await getOtp(phoneKey);
-      if (!storedOtp || !otpCode || storedOtp !== otpCode) {
+      const token = await getOtp(phoneKey);
+      if (!token || !otpCode) {
         return res.status(401).json({ ok: false, error: 'ยืนยัน OTP ไม่ผ่าน — กรุณาขอ OTP แล้วกรอกรหัส' });
+      }
+      try {
+        const v = await verifyOtp(token, otpCode);
+        if (!v.valid) return res.status(401).json({ ok: false, error: 'รหัส OTP ไม่ถูกต้อง หรือหมดอายุ' });
+      } catch (err) {
+        return res.status(502).json({ ok: false, error: err.message || 'ตรวจสอบ OTP ไม่สำเร็จ' });
       }
       // เช็คอีเมลซ้ำ
       const existingByEmail = await getIdByEmail(email);
