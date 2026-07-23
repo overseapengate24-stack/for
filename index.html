@@ -1023,8 +1023,14 @@ body{font-variant-numeric:tabular-nums}
 #opgSb a.sub{padding-left:46px;font-size:13px;color:#9aa6ae}
 #opgSb .ic{width:18px;text-align:center;font-size:15px}
 #opgSbBtn{position:fixed;top:14px;left:14px;z-index:1100;background:#3C2A0E;color:#fff;border:0;border-radius:10px;width:44px;height:44px;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
-/* บนมือถือหน้าแรก มีปุ่ม ≡ ใน header อยู่แล้ว (#hamb) → ซ่อนปุ่ม fixed ซ้ายไม่ให้ซ้อนโลโก้ */
-@media (max-width:860px){ #opgSbBtn{display:none} }
+/* บนมือถือ ปุ่ม sidebar ซ้าย
+   - ก่อนล็อกอิน: ซ่อนไว้ (ยังไม่มีเมนูสมาชิกให้ดู)
+   - หลังล็อกอิน: โผล่ + ดัน header logo ให้เขยิบขวา ไม่ให้ปุ่มบัง */
+@media (max-width:860px){
+  #opgSbBtn{display:none}
+  body.opg-logged-in #opgSbBtn{display:block}
+  body.opg-logged-in header.site .wrap.nav{padding-left:68px}
+}
 #opgSbBd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1150}
 #opgSbBd.open{display:block}
 </style>
@@ -1920,6 +1926,7 @@ function setLoggedIn(user){
   $('#userName').textContent = user.name || user.email || 'ผู้ใช้';
   $('#userPic').style.display='none';
   $('#loginBtn').style.display = 'none';
+  document.body.classList.add('opg-logged-in');
   if(typeof closeLoginModal === 'function') closeLoginModal();
   updateAuthState();
   updatePreview();
@@ -1935,6 +1942,7 @@ function setLoggedOut(){
   $('#loginGate').style.display = 'block';
   $('#userChip').style.display = 'none';
   $('#loginBtn').style.display = 'inline-flex';
+  document.body.classList.remove('opg-logged-in');
   updateAuthState();
   renderMyOrders();
 }
