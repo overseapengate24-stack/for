@@ -6,7 +6,7 @@
  * GET  /api/address?members=1             → (แอดมิน) รายชื่อสมาชิก
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent, saveAccountImage, getAccountImage } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent, saveAccountImage, getAccountImage, resetAllCredits } from '../lib/redis.js';
 import { sendSMS, normalizePhone, makeOtp, requestOtp, verifyOtp } from '../lib/tbs.js';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
@@ -211,6 +211,13 @@ export default async function handler(req, res) {
     if (req.body && req.body.adminResetAllKyc) {
       if (!isAdminReq(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
       const r = await resetAllVerifications();
+      return res.status(200).json({ ok: true, ...r });
+    }
+
+    /* ── (แอดมิน) รีเซ็ตเครดิตของสมาชิกทุกคน (ไม่แตะออเดอร์/ที่อยู่) ── */
+    if (req.body && req.body.adminResetAllCredits) {
+      if (!isAdminReq(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
+      const r = await resetAllCredits();
       return res.status(200).json({ ok: true, ...r });
     }
 
