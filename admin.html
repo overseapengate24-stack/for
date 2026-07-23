@@ -313,10 +313,23 @@ body::before{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
   .actions-cell{padding-top:10px;gap:8px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .price-row{grid-template-columns:1fr}
-  .topbar{padding:0 14px}
+  /* Topbar — ย่อโลโก้ Playfair ที่ล้นออกนอก + ลดความสูง */
+  .topbar{padding:0 12px;height:auto;min-height:56px;gap:10px}
+  .topbar-logo{font-size:15px;line-height:1.15;gap:8px}
+  .topbar-logo img{width:32px;height:32px}
+  .topbar-logo small{font-size:8px;letter-spacing:3px}
+  .topbar .admin-badge{font-size:10.5px;padding:4px 10px}
+  #logoutBtn{font-size:11.5px;padding:5px 10px}
+  /* Toolbar — ให้ h2 ขึ้นบรรทัดของตัวเอง จะได้ไม่โดนบีบจนตัดกลางคำ */
+  .toolbar{gap:8px}
+  .toolbar h2{width:100%;flex:none;font-size:16px}
   .filter-tabs{display:none}
-  .search-wrap input{width:160px}
+  .search-wrap{flex:1 1 auto}
+  .search-wrap input{width:100%;min-width:0}
   .orders-table{border:none;border-radius:0;box-shadow:none}
+  /* Modal ให้เต็มจอบน mobile ไม่มีขอบเหลือ */
+  .modal-overlay{padding:8px}
+  .modal{max-height:90vh;overflow-y:auto}
 }
 
 /* ── SHIPPING QUICK-EDIT BAR ── */
