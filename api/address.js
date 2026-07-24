@@ -6,7 +6,7 @@
  * GET  /api/address?members=1             → (แอดมิน) รายชื่อสมาชิก
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent, saveAccountImage, getAccountImage, resetAllCredits } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent, saveAccountImage, getAccountImage, resetAllCredits, nextMemberCode } from '../lib/redis.js';
 import { sendSMS, normalizePhone, makeOtp, requestOtp, verifyOtp } from '../lib/tbs.js';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
@@ -74,6 +74,7 @@ export default async function handler(req, res) {
         phone: a.phone || '',
         idNumber: a.idNumber || '',
         internalId: a.internalId || '',
+        memberCode: a.memberCode || '',
         hasIdImage: !!a.hasIdImage,
         idType: a.idType || 'thai',
         createdAt: a.createdAt || '',
@@ -165,6 +166,8 @@ export default async function handler(req, res) {
       if (existingByEmail) return res.status(409).json({ ok: false, error: 'อีเมลนี้ถูกใช้สมัครแล้ว — กรุณาเข้าสู่ระบบ' });
       // สร้าง internal id (hex 16 ตัว) — แอดมินตรวจเลขจริงจากรูปบัตรเอง
       const internalId = randomBytes(8).toString('hex').toUpperCase();
+      // รหัสสมาชิกอ่านง่าย (OP-XXXX) — แสดงในโปรไฟล์ + admin
+      const memberCode = await nextMemberCode();
       const now = new Date().toISOString();
       const acct = {
         name, phone, email,
@@ -172,6 +175,7 @@ export default async function handler(req, res) {
         idType: 'thai',
         hasIdImage: true,
         internalId,
+        memberCode,
         passwordHash: hashPassword(password),
         verifyStatus: 'NONE',
         createdAt: now,

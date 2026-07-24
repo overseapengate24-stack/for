@@ -1039,6 +1039,7 @@ body{font-variant-numeric:tabular-nums}
   <div class="p">
     <img id="opgSbPic" src="/logo.png?v=2" alt=""/>
     <div class="nm" id="opgSbName">ยังไม่เข้าสู่ระบบ</div>
+    <div class="mc" id="opgSbCode" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;font-weight:700;color:#F5B301;letter-spacing:1px;margin-top:3px"></div>
     <div class="em" id="opgSbEmail"></div>
   </div>
   <nav>
@@ -1056,7 +1057,7 @@ body{font-variant-numeric:tabular-nums}
   var btn=document.getElementById('opgSbBtn'),sb=document.getElementById('opgSb'),bd=document.getElementById('opgSbBd');
   function close(){sb.classList.remove('open');bd.classList.remove('open');}
   btn.addEventListener('click',function(){sb.classList.toggle('open');bd.classList.toggle('open');
-    try{var u=JSON.parse(localStorage.getItem('opg_user')||'null');if(u){if(u.picture)document.getElementById('opgSbPic').src=u.picture;document.getElementById('opgSbName').textContent=u.name||'ผู้ใช้';document.getElementById('opgSbEmail').textContent=u.email||'';}}catch(e){}
+    try{var u=JSON.parse(localStorage.getItem('opg_user')||'null');if(u){if(u.picture)document.getElementById('opgSbPic').src=u.picture;document.getElementById('opgSbName').textContent=u.name||'ผู้ใช้';document.getElementById('opgSbEmail').textContent=u.email||'';document.getElementById('opgSbCode').textContent=u.memberCode||'';}}catch(e){}
   });
   bd.addEventListener('click',close);
   sb.querySelectorAll('a').forEach(function(a){a.addEventListener('click',close);});

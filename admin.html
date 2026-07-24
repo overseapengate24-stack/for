@@ -1901,7 +1901,7 @@ function renderMembers(){
     <div class="member-row" data-i="${i}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--surface)">
       <div style="width:38px;height:38px;border-radius:50%;background:var(--brand-50,#F6F0E1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;color:var(--brand-700)">${escapeHtml((m.name||'?').slice(0,1))}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:700">${escapeHtml(m.name || '—')}</div>
+        <div style="font-weight:700">${escapeHtml(m.name || '—')}${m.memberCode ? ` <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px;font-weight:700;color:#7C6739;background:#F6F0E1;border-radius:6px;padding:2px 7px;margin-left:6px">${escapeHtml(m.memberCode)}</span>` : ''}</div>
         <div style="font-size:12.5px;color:var(--ink-soft)">${escapeHtml(m.email || 'ไม่ระบุอีเมล')}${m.phone ? ' · 📞 ' + escapeHtml(m.phone) : ''}${m.createdAt ? ' · สมัคร ' + formatDate(m.createdAt) : ''}</div>
       </div>
       <div style="text-align:right">
@@ -1928,7 +1928,7 @@ function renderMembers(){
     const f = search.value.trim().toLowerCase();
     document.querySelectorAll('#memberList .member-row').forEach(el => {
       const m = membersCache[Number(el.dataset.i)];
-      const hit = !f || [m.name, m.idNumber, m.email, m.phone].some(v => String(v||'').toLowerCase().includes(f));
+      const hit = !f || [m.name, m.idNumber, m.email, m.phone, m.memberCode].some(v => String(v||'').toLowerCase().includes(f));
       el.style.display = hit ? 'flex' : 'none';
     });
   });
@@ -1961,7 +1961,7 @@ async function openMemberOrders(m){
   const head = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" id="memberBackBtn">← กลับ</button>
-      <div style="font-weight:700">${escapeHtml(m.name || '—')}</div>
+      <div style="font-weight:700">${escapeHtml(m.name || '—')}${m.memberCode ? ` <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px;font-weight:700;color:#7C6739;background:#F6F0E1;border-radius:6px;padding:2px 7px;margin-left:6px">${escapeHtml(m.memberCode)}</span>` : ''}</div>
       <div style="font-size:12.5px;color:var(--ink-soft)">${escapeHtml(m.email || '')}${m.phone ? ' · 📞 ' + escapeHtml(m.phone) : ''}</div>
       ${m.idNumber ? `<div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700">${escapeHtml(m.idNumber)}</div><div style="font-size:12.5px;color:var(--ink-soft)">🪪 บัตรประชาชน</div>` : ''}
     </div>
