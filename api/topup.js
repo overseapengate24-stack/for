@@ -7,7 +7,7 @@
  */
 
 import { createHash } from 'crypto';
-import { addTopup, getTopup, updateTopup, deleteTopup, listTopups, getUserCredit, addUserCredit, slipSeen, markSlip, unmarkSlip, addKnownUser } from '../lib/redis.js';
+import { addTopup, getTopup, updateTopup, deleteTopup, listTopups, getUserCredit, addUserCredit, deductCredit, slipSeen, markSlip, unmarkSlip, addKnownUser } from '../lib/redis.js';
 
 const ADMIN_KEY = (process.env.ADMIN_SECRET_KEY || 'changeme').trim();
 const MAX_IMG = 800 * 1024;
@@ -98,9 +98,17 @@ export default async function handler(req, res) {
     if (!isAdmin && email !== (t.email || '').toLowerCase()) {
       return res.status(403).json({ ok: false, error: 'ลบได้เฉพาะรายการของตนเอง' });
     }
-    /* ถ้าเคยอนุมัติ (มีเครดิต) → หักเครดิตคืน และปลดล็อกสลิป */
+    /* ถ้าเคยอนุมัติ (มีเครดิต) → หักเครดิตคืน และปลดล็อกสลิป
+       ใช้ deductCredit เพื่อกันติดลบ (ลูกค้าใช้เครดิตไปแล้ว → หักคืนไม่ได้ทั้งหมด) */
     if (t.status === 'APPROVED') {
-      await addUserCredit(t.email, -Number(t.amount || 0));
+      try {
+        await deductCredit(t.email, Number(t.amount || 0));
+      } catch (err) {
+        if (err.code === 'INSUFFICIENT_CREDIT') {
+          return res.status(400).json({ ok: false, error: 'ลบไม่ได้: ลูกค้าใช้เครดิตนี้ไปแล้ว หักคืนแล้วจะติดลบ (คงเหลือ ' + err.balance + ' ฿ · ต้องคืน ' + err.needed + ' ฿)' });
+        }
+        throw err;
+      }
       if (t.dedupKey) await unmarkSlip(t.dedupKey);
     }
     await deleteTopup(id);

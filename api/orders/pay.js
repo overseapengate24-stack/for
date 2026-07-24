@@ -4,7 +4,7 @@
  * ชำระเงินออเดอร์ด้วยเครดิตในระบบ → ตัดเครดิต + เปลี่ยนสถานะเป็น PAID
  */
 
-import { getOrder, updateOrder, getUserCredit, addUserCredit, getRmbRate } from '../../lib/redis.js';
+import { getOrder, updateOrder, getUserCredit, deductCredit, getRmbRate } from '../../lib/redis.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -34,12 +34,20 @@ export default async function handler(req, res) {
                + (Number(order.billFee) || 0) - (Number(order.discount) || 0);
   if (amount <= 0) return res.status(400).json({ ok: false, error: 'ยอดชำระไม่ถูกต้อง (ราคาสินค้าเป็น 0 หรือติดลบ)' });
 
+  /* deductCredit เช็คซ้ำในตัวและปฏิเสธถ้าจะติดลบ — เรา return 402 ล่วงหน้าเพื่อให้ client จัดการง่าย */
   const credit = await getUserCredit(email);
   if (credit < amount) {
-    return res.status(402).json({ ok: false, error: 'เครดิตไม่เพียงพอ กรุณาเติมเงินก่อน', credit, amount, need: amount - credit });
+    return res.status(402).json({ ok: false, error: 'เครดิตไม่เพียงพอ กรุณาเติมเงินก่อน', credit, amount, need: amount - credit, topupUrl: '/topup.html' });
   }
-
-  const newCredit = await addUserCredit(email, -amount);
+  let newCredit;
+  try {
+    newCredit = await deductCredit(email, amount);
+  } catch (err) {
+    if (err.code === 'INSUFFICIENT_CREDIT') {
+      return res.status(402).json({ ok: false, error: 'เครดิตไม่เพียงพอ กรุณาเติมเงินก่อน', credit: err.balance, amount, need: err.shortBy, topupUrl: '/topup.html' });
+    }
+    throw err;
+  }
   const updated = await updateOrder(no, { status: 'PAID', statusText: 'รอเลขขนส่งจีน', total: String(productTotal), paidAt: new Date().toISOString() });
   return res.status(200).json({ ok: true, credit: newCredit, amount, order: { orderNo: updated.orderNo, status: updated.status } });
 }
