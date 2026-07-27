@@ -148,9 +148,15 @@ async function load(){
   if(!me||!me.email){ $('#billsBody').innerHTML='<tr><td colspan="8" class="empty">กรุณาเข้าสู่ระบบก่อน</td></tr>'; return; }
   let orders=[];
   try{ const r=await fetch(`/api/orders/user?email=${encodeURIComponent(me.email.toLowerCase())}`); const d=await r.json(); orders=(d.ok&&d.orders)?d.orders:[];}catch(e){}
-  /* ออเดอร์ที่ออกบิลแล้ว = สินค้าถึงโกดังไทย (shipStatus) หรือเข้า bill flow (billStatus) */
+  /* ออเดอร์ที่ออกบิลแล้ว = ถึงโกดังไทย (status DONE หรือ shipStatus TH_WH ขึ้นไป) หรือเข้า bill flow (billStatus)
+     — ยกเว้นฝากจ่ายเงิน (OVE) ที่ไม่มีการขนส่ง */
   const BILLED = ['REVIEW','AWAIT_PAY','SLIP','PAID','SHIPPED','DELIVERED'];
-  bills = orders.filter(o=>['TH_WH','DELIVERING','DELIVERED'].includes(o.shipStatus) || BILLED.includes(o.billStatus));
+  bills = orders.filter(o=>
+    o.source!=='pay' && (
+      o.status==='DONE' ||
+      ['TH_WH','DELIVERING','DELIVERED'].includes(o.shipStatus) ||
+      BILLED.includes(o.billStatus)
+    ));
   render();
 }
 const BS={
