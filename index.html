@@ -1115,12 +1115,33 @@ body{font-variant-numeric:tabular-nums}
         📷 ถ่ายรูป / เลือกรูปบัตรประชาชน
       </label>
       <input id="rgIdImageInput" type="file" accept="image/*" capture="environment" style="display:none" />
-      <img id="rgIdImagePreview" alt="" style="display:none;max-width:220px;max-height:140px;border-radius:10px;margin:6px auto;border:1px solid var(--line,#ddd);object-fit:cover" />
       <input id="rgPassword" type="password" placeholder="ตั้งรหัสผ่าน (อย่างน้อย 6 ตัว)" autocomplete="new-password" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
       <input id="rgConfirm" type="password" placeholder="ยืนยันรหัสผ่าน" autocomplete="new-password" style="width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:10px;font-size:15px;margin:6px auto;display:block" />
       <div class="modal-help" id="rgHelp" style="min-height:20px;margin-top:6px"></div>
       <button class="btn btn-primary" id="rgSubmit" type="button" style="min-width:220px;margin-top:6px">🤝 ลงทะเบียน</button>
       <div style="margin-top:14px;font-size:13.5px;color:var(--ink-soft,#7C715B)">มีบัญชีอยู่แล้ว? <a href="#" id="goLogin" style="color:var(--brand-600,#7C6739);font-weight:700;text-decoration:underline">เข้าสู่ระบบ</a></div>
+    </div>
+
+    <!-- ID VERIFY SCREEN — เปิดตอนอัปโหลดรูปบัตร -->
+    <div id="verifyBox" style="display:none;padding:10px 0">
+      <h3 style="margin:0 0 6px;font-size:18px;text-align:center">🔍 กำลังตรวจสอบบัตรประชาชน</h3>
+      <div id="verifyStatus" style="text-align:center;color:var(--ink-soft,#7C715B);font-size:14px;margin-bottom:14px">กรุณารอสักครู่…</div>
+      <img id="verifyPreview" alt="" style="display:block;max-width:260px;max-height:170px;border-radius:10px;margin:0 auto 12px;border:1px solid var(--line,#ddd);object-fit:cover" />
+      <div id="verifySpinner" style="text-align:center;font-size:32px;margin:12px 0">⏳</div>
+      <div id="verifyResult" style="display:none;text-align:center;background:var(--brand-50,#F6F0E1);border-radius:12px;padding:14px;margin:8px auto;max-width:340px">
+        <div style="font-size:36px">✅</div>
+        <div style="font-weight:700;font-size:16px;margin:6px 0 2px">ตรวจสอบสำเร็จ</div>
+        <div id="verifyName" style="font-size:14px;color:var(--ink)"></div>
+        <div id="verifyIdMasked" style="font-size:13px;color:var(--ink-soft,#7C715B);margin-top:4px;font-family:monospace"></div>
+      </div>
+      <div id="verifyError" style="display:none;text-align:center;background:#FCE8E6;border-radius:12px;padding:14px;margin:8px auto;max-width:340px">
+        <div style="font-size:36px">❌</div>
+        <div id="verifyErrorText" style="font-weight:600;font-size:14px;margin:6px 0;color:#b3392f"></div>
+      </div>
+      <div style="text-align:center;margin-top:14px">
+        <button class="btn btn-primary" id="verifyContinueBtn" type="button" style="display:none;min-width:220px">✅ กลับไปกรอกข้อมูลสมัคร</button>
+        <button class="btn btn-ghost btn-sm" id="verifyRetryBtn" type="button" style="display:none;min-width:180px">🔁 ถ่ายใหม่</button>
+      </div>
     </div>
 
     <div class="modal-skip" style="margin-top:14px"><button class="btn btn-ghost btn-sm" id="loginSkip" type="button">เข้าชมเว็บก่อน</button></div>
@@ -1873,6 +1894,8 @@ function rgFileToResizedDataURL(file, maxW = 1000, quality = 0.75){
   });
 }
 
+let rgOcrToken = '';
+
 async function doRegister(){
   const phone = $('#rgPhone').value.trim();
   const email = $('#rgEmail').value.trim().toLowerCase();
@@ -1882,24 +1905,65 @@ async function doRegister(){
   const help = $('#rgHelp'); help.textContent = ''; help.style.color = 'var(--err,#b3392f)';
   if(!phone){ help.textContent = 'กรุณากรอกเบอร์โทรศัพท์'; return; }
   if(!/^\S+@\S+\.\S+$/.test(email)){ help.textContent = 'รูปแบบอีเมลไม่ถูกต้อง'; return; }
-  if(!rgIdImageData){ help.textContent = 'กรุณาแนบรูปถ่ายบัตรประชาชน'; return; }
+  if(!rgOcrToken){ help.textContent = 'กรุณาแนบรูปบัตรและตรวจสอบให้ผ่านก่อน'; return; }
   if(password.length < 6){ help.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
   if(password !== confirmPassword){ help.textContent = 'รหัสผ่านไม่ตรงกัน'; return; }
   if(!/^\d{6}$/.test(otpCode)){ help.textContent = 'กรุณากด "ส่ง OTP" แล้วกรอกรหัส 6 หลักที่ได้รับ'; return; }
   const btn = $('#rgSubmit'); btn.disabled = true; const oldText = btn.textContent; btn.textContent = 'กำลังสมัคร…';
   try{
-    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ register:{ phone, email, password, confirmPassword, idImage: rgIdImageData, otpCode } }) });
+    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ register:{ phone, email, password, confirmPassword, ocrToken: rgOcrToken, otpCode } }) });
     const j = await r.json();
     if(!j.ok) throw new Error(apiErrText(j.error, 'สมัครสมาชิกไม่สำเร็จ'));
     const user = j.user;
     localStorage.setItem('opg_user', JSON.stringify(user));
+    rgOcrToken = ''; rgIdImageData = '';
     setLoggedIn(user);
     if(typeof flashAlert === 'function') flashAlert('✅ สมัครสมาชิกเรียบร้อย ยินดีต้อนรับ!');
   }catch(err){ help.textContent = err.message || 'สมัครสมาชิกไม่สำเร็จ'; }
   btn.disabled = false; btn.textContent = oldText;
 }
 
-// รับไฟล์รูปบัตร → ย่อ → พรีวิว
+function showVerifyScreen(){
+  document.getElementById('registerFormBox').style.display = 'none';
+  document.getElementById('verifyBox').style.display = 'block';
+}
+function showRegisterScreen(){
+  document.getElementById('verifyBox').style.display = 'none';
+  document.getElementById('registerFormBox').style.display = 'block';
+}
+
+async function runOcrCheck(image){
+  const spin = document.getElementById('verifySpinner');
+  const okBox = document.getElementById('verifyResult');
+  const errBox = document.getElementById('verifyError');
+  const continueBtn = document.getElementById('verifyContinueBtn');
+  const retryBtn = document.getElementById('verifyRetryBtn');
+  const status = document.getElementById('verifyStatus');
+  spin.style.display='block'; okBox.style.display='none'; errBox.style.display='none';
+  continueBtn.style.display='none'; retryBtn.style.display='none';
+  status.textContent = 'กำลังตรวจสอบบัตร…';
+  try{
+    const r = await fetch('/api/address', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ocrCheck:{ image } }) });
+    const j = await r.json();
+    spin.style.display='none';
+    if(!j.ok) throw new Error(apiErrText(j.error, 'ตรวจสอบบัตรไม่สำเร็จ'));
+    rgOcrToken = j.ocrToken || '';
+    document.getElementById('verifyName').textContent = j.thName ? ('ชื่อ: ' + j.thName) : '';
+    document.getElementById('verifyIdMasked').textContent = 'เลขบัตร: ' + (j.idNumberMasked || '');
+    okBox.style.display='block';
+    continueBtn.style.display='inline-block';
+    status.textContent = 'ตรวจสอบเสร็จ — กดปุ่มเพื่อไปกรอกข้อมูลต่อ';
+  }catch(err){
+    spin.style.display='none';
+    rgOcrToken = '';
+    document.getElementById('verifyErrorText').textContent = err.message || 'ตรวจสอบไม่สำเร็จ';
+    errBox.style.display='block';
+    retryBtn.style.display='inline-block';
+    status.textContent = 'ตรวจสอบไม่ผ่าน';
+  }
+}
+
+// รับไฟล์รูปบัตร → ย่อ → ไปหน้าตรวจสอบ → OCR
 document.addEventListener('DOMContentLoaded', ()=>{
   const inp = document.getElementById('rgIdImageInput');
   if(!inp) return;
@@ -1908,14 +1972,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const help = document.getElementById('rgHelp'); help.textContent = '';
     try{
       rgIdImageData = await rgFileToResizedDataURL(f);
-      const pv = document.getElementById('rgIdImagePreview');
-      pv.src = rgIdImageData; pv.style.display = 'block';
-      document.getElementById('rgIdImageLabel').textContent = '✅ แนบรูปแล้ว — กดเพื่อเปลี่ยนรูป';
+      document.getElementById('verifyPreview').src = rgIdImageData;
+      showVerifyScreen();
+      await runOcrCheck(rgIdImageData);
     }catch(err){
-      rgIdImageData = '';
+      rgIdImageData = ''; rgOcrToken = '';
       help.textContent = err.message || 'อ่านไฟล์รูปไม่สำเร็จ กรุณาลองใหม่';
       help.style.color = 'var(--err,#b3392f)';
     }
+  });
+  document.getElementById('verifyContinueBtn').addEventListener('click', ()=>{
+    document.getElementById('rgIdImageLabel').textContent = '✅ ตรวจสอบบัตรผ่านแล้ว — กดเพื่อเปลี่ยนรูป';
+    showRegisterScreen();
+  });
+  document.getElementById('verifyRetryBtn').addEventListener('click', ()=>{
+    rgIdImageData = ''; rgOcrToken = '';
+    document.getElementById('rgIdImageInput').value = '';
+    showRegisterScreen();
   });
 });
 

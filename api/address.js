@@ -6,7 +6,7 @@
  * GET  /api/address?members=1             → (แอดมิน) รายชื่อสมาชิก
  */
 
-import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent, saveAccountImage, getAccountImage, resetAllCredits, nextMemberCode, backfillMemberCodes } from '../lib/redis.js';
+import { getUserAddresses, addUserAddress, deleteUserAddress, saveUserProfile, getAccount, saveAccount, addKnownUser, listAccounts, resetAllVerifications, bindEmailToId, getIdByEmail, saveOtp, getOtp, delOtp, otpRateLimited, markOtpSent, saveAccountImage, getAccountImage, resetAllCredits, nextMemberCode, backfillMemberCodes, saveOcrCache, getOcrCache, delOcrCache } from '../lib/redis.js';
 import { sendSMS, normalizePhone, makeOtp, requestOtp, verifyOtp } from '../lib/tbs.js';
 import { ocrThaiIdFront, validThaiId as validThaiIdChecksum } from '../lib/iapp.js';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
@@ -133,6 +133,33 @@ export default async function handler(req, res) {
       }
     }
 
+    /* ── ตรวจสอบบัตร ปชช ก่อนสมัคร — เรียกจากหน้าฟอร์มตอนอัปโหลดรูป ── */
+    if (req.body && req.body.ocrCheck) {
+      const idImage = String(req.body.ocrCheck.image || '');
+      if (!/^data:image\/(jpeg|png|webp);base64,/.test(idImage)) {
+        return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน' });
+      }
+      if (idImage.length > 900000) {
+        return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป กรุณาลองใหม่' });
+      }
+      let ocr;
+      try {
+        ocr = await ocrThaiIdFront(idImage);
+      } catch (err) {
+        return res.status(502).json({ ok: false, error: 'ไม่สามารถตรวจสอบบัตรได้ในขณะนี้ กรุณาลองใหม่' });
+      }
+      if (!ocr.idNumber || ocr.idNumber.length !== 13) {
+        return res.status(400).json({ ok: false, error: 'ไม่พบเลขบัตร 13 หลักในรูป — กรุณาถ่ายใหม่ให้ชัดเจน อย่าให้เลขบัตรถูกบัง' });
+      }
+      if (!ocr.valid) {
+        return res.status(400).json({ ok: false, error: 'เลขบัตรที่อ่านได้ไม่ถูกต้อง — กรุณาถ่ายใหม่หรือใช้บัตรจริง' });
+      }
+      const ocrToken = randomBytes(16).toString('hex');
+      await saveOcrCache(ocrToken, { idNumber: ocr.idNumber, thName: ocr.thName, image: idImage });
+      const masked = ocr.idNumber.slice(0, 1) + '-XXXX-XXX' + ocr.idNumber.slice(-4, -2) + '-' + ocr.idNumber.slice(-2, -1) + '-' + ocr.idNumber.slice(-1);
+      return res.status(200).json({ ok: true, ocrToken, idNumberMasked: masked, thName: ocr.thName });
+    }
+
     /* ── สมัครสมาชิกใหม่ ── */
     if (req.body && req.body.register) {
       const r = req.body.register;
@@ -140,14 +167,18 @@ export default async function handler(req, res) {
       const email = String(r.email || '').trim().toLowerCase().slice(0, 120);
       const password = String(r.password || '');
       const confirmPassword = String(r.confirmPassword || '');
-      const idImage = String(r.idImage || '');
+      const ocrToken = String(r.ocrToken || '').trim();
       const otpCode = String(r.otpCode || '').trim();
       if (!phone || phone.replace(/\D/g, '').length < 9) return res.status(400).json({ ok: false, error: 'เบอร์โทรศัพท์ไม่ถูกต้อง' });
       if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'รูปแบบอีเมลไม่ถูกต้อง' });
       if (password.length < 6) return res.status(400).json({ ok: false, error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' });
       if (password !== confirmPassword) return res.status(400).json({ ok: false, error: 'รหัสผ่านไม่ตรงกัน' });
-      if (!/^data:image\/(jpeg|png|webp);base64,/.test(idImage)) return res.status(400).json({ ok: false, error: 'กรุณาแนบรูปถ่ายบัตรประชาชน' });
-      if (idImage.length > 900000) return res.status(400).json({ ok: false, error: 'รูปใหญ่เกินไป กรุณาลองใหม่' });
+      if (!ocrToken) return res.status(400).json({ ok: false, error: 'กรุณาตรวจสอบบัตรประชาชนก่อนสมัคร' });
+      const cached = await getOcrCache(ocrToken);
+      if (!cached || !cached.idNumber || !cached.image) {
+        return res.status(410).json({ ok: false, error: 'ผลการตรวจสอบบัตรหมดอายุ กรุณาถ่ายบัตรใหม่' });
+      }
+      const idImage = cached.image;
       // ต้องยืนยัน OTP เบอร์นี้ก่อน — verify กับ TBS ด้วย token ที่เก็บไว้ตอน otpSend
       const phoneKey = normalizePhone(phone);
       const token = await getOtp(phoneKey);
@@ -163,27 +194,14 @@ export default async function handler(req, res) {
       // เช็คอีเมลซ้ำ
       const existingByEmail = await getIdByEmail(email);
       if (existingByEmail) return res.status(409).json({ ok: false, error: 'อีเมลนี้ถูกใช้สมัครแล้ว — กรุณาเข้าสู่ระบบ' });
-      /* OCR รูปบัตร → ต้องเจอเลข 13 หลัก + checksum ผ่าน ไม่งั้นบล็อคการสมัคร */
-      let ocrResult;
-      try {
-        ocrResult = await ocrThaiIdFront(idImage);
-      } catch (err) {
-        return res.status(502).json({ ok: false, error: 'ไม่สามารถตรวจสอบบัตรได้ในขณะนี้ กรุณาลองใหม่' });
-      }
-      if (!ocrResult.idNumber || ocrResult.idNumber.length !== 13) {
-        return res.status(400).json({ ok: false, error: 'ไม่พบเลขบัตร 13 หลักในรูป — กรุณาถ่ายใหม่ให้ชัดเจน อย่าให้เลขบัตรถูกบัง' });
-      }
-      if (!ocrResult.valid) {
-        return res.status(400).json({ ok: false, error: 'เลขบัตรที่อ่านได้ไม่ถูกต้อง — กรุณาถ่ายใหม่หรือใช้บัตรจริง' });
-      }
       // สร้าง internal id (hex 16 ตัว)
       const internalId = randomBytes(8).toString('hex').toUpperCase();
       // รหัสสมาชิกอ่านง่าย (OP-XXXX) — แสดงในโปรไฟล์ + admin
       const memberCode = await nextMemberCode();
       const now = new Date().toISOString();
       const acct = {
-        name: ocrResult.thName || '', phone, email,
-        idNumber: ocrResult.idNumber,
+        name: cached.thName || '', phone, email,
+        idNumber: cached.idNumber,
         idType: 'thai',
         hasIdImage: true,
         internalId,
@@ -198,6 +216,7 @@ export default async function handler(req, res) {
       await saveUserProfile(email, { idType: 'thai', registeredAt: now });
       try { await addKnownUser(email); } catch (e2) {}
       try { await delOtp(phoneKey); } catch (e2) {}
+      try { await delOcrCache(ocrToken); } catch (e2) {}
       return res.status(200).json({ ok: true, user: safeAccount(acct) });
     }
 
