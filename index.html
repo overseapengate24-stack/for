@@ -1985,11 +1985,12 @@ function setLoggedIn(user){
   currentUser = user;
   $('#loginGate').style.display = 'none';
   if($('#orderSuccess').style.display !== 'block'){ $('#orderForm').style.display = 'block'; }
-  const showEmail = user.email ? ' • ' + user.email : '';
-  $('#welcome').textContent = 'ยินดีต้อนรับ คุณ ' + (user.name || 'ผู้ใช้') + showEmail;
+  const displayId = user.memberCode || user.email || 'ผู้ใช้';
+  const showEmail = user.email && user.memberCode ? ' • ' + user.email : '';
+  $('#welcome').textContent = 'ยินดีต้อนรับ ' + displayId + showEmail;
   const chip = $('#userChip');
   chip.style.display = 'flex';
-  $('#userName').textContent = user.name || user.email || 'ผู้ใช้';
+  $('#userName').textContent = displayId;
   $('#userPic').style.display='none';
   $('#loginBtn').style.display = 'none';
   document.body.classList.add('opg-logged-in');
