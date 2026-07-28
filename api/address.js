@@ -135,14 +135,12 @@ export default async function handler(req, res) {
     /* ── สมัครสมาชิกใหม่ ── */
     if (req.body && req.body.register) {
       const r = req.body.register;
-      const name = String(r.name || '').trim().slice(0, 120);
       const phone = String(r.phone || '').trim().replace(/[^\d+-]/g, '').slice(0, 20);
       const email = String(r.email || '').trim().toLowerCase().slice(0, 120);
       const password = String(r.password || '');
       const confirmPassword = String(r.confirmPassword || '');
       const idImage = String(r.idImage || '');
       const otpCode = String(r.otpCode || '').trim();
-      if (!name) return res.status(400).json({ ok: false, error: 'กรุณากรอกชื่อ-นามสกุล' });
       if (!phone || phone.replace(/\D/g, '').length < 9) return res.status(400).json({ ok: false, error: 'เบอร์โทรศัพท์ไม่ถูกต้อง' });
       if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'รูปแบบอีเมลไม่ถูกต้อง' });
       if (password.length < 6) return res.status(400).json({ ok: false, error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' });
@@ -170,7 +168,7 @@ export default async function handler(req, res) {
       const memberCode = await nextMemberCode();
       const now = new Date().toISOString();
       const acct = {
-        name, phone, email,
+        name: '', phone, email,
         idNumber: '',           // แอดมินอ่านจากรูปภาพเอง
         idType: 'thai',
         hasIdImage: true,
