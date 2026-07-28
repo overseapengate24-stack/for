@@ -130,6 +130,11 @@
     padding:6px 10px 6px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
   #userChip img{width:30px;height:30px;border-radius:50%}
   #userChip .nm{font-size:13px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media (max-width:860px){
+    #userChip{padding:4px 8px 4px 10px;gap:6px}
+    #userChip img{width:26px;height:26px}
+    #userChip .nm{max-width:80px;font-size:12px}
+  }
 
   .hero{padding:64px 0 52px;position:relative;overflow:hidden;min-height:520px}
   .hero::before{content:"";position:absolute;inset:-30% -10% auto auto;width:520px;height:520px;
