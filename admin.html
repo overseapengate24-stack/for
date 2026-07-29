@@ -1311,7 +1311,8 @@ $('goToBill')?.addEventListener('click', async () => {
   const btn=$('goToBill'), t=btn.textContent; btn.disabled=true; btn.textContent='กำลังออกบิล…';
   /* เปิดแท็บใหม่ทันทีตอนคลิก (ก่อน await) กันเบราว์เซอร์บล็อก popup แล้วค่อยพาไปหน้าบิลทีหลัง */
   const billWin = window.open('', '_blank');
-  if(billWin) billWin.document.write('<body style="font-family:sans-serif;padding:40px;text-align:center;color:#7C715B">⏳ กำลังออกบิล…</body>');
+  if(billWin) billWin.document.write('<body style="font-family:sans-serif;padding:40px;text-align:center;color:#7C715B">⏳ กำลังออกบิล…<script src="/i18n.js" defer></script>
+</body>');
   try{
     const r=await fetch(`${API_BASE}/api/orders/update?no=${editingOrder.orderNo}`,{
       method:'PATCH', headers:{'Content-Type':'application/json','x-admin-key':adminKey},
@@ -2049,5 +2050,6 @@ async function actTopup(id, action){
 }
 
 </script>
+<script src="/i18n.js" defer></script>
 </body>
 </html>
