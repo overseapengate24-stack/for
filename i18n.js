@@ -1121,6 +1121,16 @@
 
   window.OPGi18n = { setLang: setLang, current: function () { return currentLang; } };
 
+  /* Any element with data-opg-lang="th|en|zh" acts as a switcher button.
+     Lets pages sprinkle in extra switchers (e.g. inside modals) without
+     any per-page JS. */
+  document.addEventListener('click', function (ev) {
+    var el = ev.target.closest && ev.target.closest('[data-opg-lang]');
+    if (!el) return;
+    var code = el.getAttribute('data-opg-lang');
+    if (code) { ev.preventDefault(); setLang(code); }
+  });
+
   function init() {
     translateAll();
     mountSwitcher();
